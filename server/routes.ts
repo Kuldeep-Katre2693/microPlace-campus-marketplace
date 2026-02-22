@@ -29,12 +29,7 @@ export async function registerRoutes(
       if (existing) {
         return res.status(400).json({ message: "Email already registered" });
       }
-      const user = await storage.createUser({
-        clerkId: "local_" + Date.now(),
-        name: input.name,
-        email: input.email,
-        password: input.password,
-      });
+      const user = await storage.createUser(input);
       res.status(201).json(user);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -201,13 +196,33 @@ export async function registerRoutes(
           });
 
           await storage.createListing({
-            sellerId: user1.id,
-            title: "Bluetooth Earbuds",
-            description: "Boat Airdopes, noise cancelling. Good for study sessions.",
-            price: 1200,
-            category: "Electronics",
+            sellerId: user2.id,
+            title: "Study Desk and Chair",
+            description: "Ergonomic chair and sturdy wooden desk for hostel room.",
+            price: 2500,
+            category: "Furniture",
             condition: "Good",
-            images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df"]
+            images: ["https://picsum.photos/seed/furniture/300"]
+          });
+
+          await storage.createListing({
+            sellerId: user1.id,
+            title: "Mountain Bicycle",
+            description: "Hercules mountain bike, 18 gears, well maintained.",
+            price: 4500,
+            category: "Bicycles",
+            condition: "Used",
+            images: ["https://picsum.photos/seed/bike/300"]
+          });
+
+          await storage.createListing({
+            sellerId: user2.id,
+            title: "Electric Kettle",
+            description: "1.5L electric kettle, useful for making tea/coffee in hostel.",
+            price: 600,
+            category: "Hostel Essentials",
+            condition: "Like New",
+            images: ["https://picsum.photos/seed/kettle/300"]
           });
         }
       }

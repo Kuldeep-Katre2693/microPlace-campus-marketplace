@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { Loader2, GraduationCap, ArrowRight } from "lucide-react";
+import { Loader2, GraduationCap, UploadCloud } from "lucide-react";
 
 export default function AuthPage() {
   const { login, register, isLoading } = useAuth();
@@ -13,13 +13,25 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [studentIdImage, setStudentIdImage] = useState<string | null>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setStudentIdImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLogin) {
       await login({ email, password });
     } else {
-      await register({ name, email, password });
+      await register({ name, email, password, studentIdImage });
     }
   };
 
@@ -55,24 +67,52 @@ export default function AuthPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input 
-                      id="name" 
-                      placeholder="Aditya Sharma" 
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required 
-                    />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input 
+                        id="name" 
+                        placeholder="Aditya Sharma" 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="studentIdImage">Student ID Card</Label>
+                      <div className="relative">
+                        <Input 
+                          id="studentIdImage" 
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          required
+                        />
+                        <Label 
+                          htmlFor="studentIdImage"
+                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors border-muted-foreground/25"
+                        >
+                          {studentIdImage ? (
+                            <img src={studentIdImage} alt="ID Preview" className="h-full w-full object-contain p-2" />
+                          ) : (
+                            <>
+                              <UploadCloud className="w-8 h-8 text-muted-foreground mb-2" />
+                              <span className="text-sm text-muted-foreground">Upload Student ID</span>
+                            </>
+                          )}
+                        </Label>
+                      </div>
+                    </div>
+                  </>
                 )}
                 
                 <div className="space-y-2">
-                  <Label htmlFor="email">College Email</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input 
                     id="email" 
                     type="email" 
-                    placeholder="student@priyadarshini.edu" 
+                    placeholder="student@example.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required 

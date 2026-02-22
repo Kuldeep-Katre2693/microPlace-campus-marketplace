@@ -75,7 +75,7 @@ export default function Home() {
       <section className="py-12 border-b">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-4 justify-center">
-            {["All", "Academic", "Electronics", "Stationery", "Clothing", "Dorm Essentials"].map((cat) => (
+            {["All", "Academic", "Electronics", "Stationery", "Clothing", "Furniture", "Bicycles", "Hostel Essentials"].map((cat) => (
               <Button 
                 key={cat} 
                 variant={selectedCategory === cat ? "default" : "outline"}

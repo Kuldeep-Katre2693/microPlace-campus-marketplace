@@ -1,0 +1,152 @@
+You are a senior full-stack debugging engineer.
+
+Project: MicroPlace
+Stack:
+- React frontend
+- Node.js + Express backend
+- Clerk authentication
+- PostgreSQL
+- Razorpay
+
+The login system is broken and showing:
+"It says use @priyadarsini email"
+
+I want you to carefully inspect the entire authentication, listing, and detail system and fully repair it.
+
+-------------------------------------------------------
+TASK 1 — REMOVE EMAIL DOMAIN RESTRICTION
+-------------------------------------------------------
+
+1. Find and REMOVE all validation logic restricting email to:
+   @priyadarsini or @priyadarshini.edu
+
+2. Remove domain validation from:
+   - Frontend
+   - Backend
+   - Clerk rules (if any)
+
+3. Allow all valid emails for demo purposes.
+
+-------------------------------------------------------
+TASK 2 — MOVE STUDENT ID CARD TO SIGNUP PAGE
+-------------------------------------------------------
+
+1. Remove student ID upload from login page completely.
+2. Add student ID upload to signup page only.
+3. During signup:
+   - Collect name
+   - Collect email
+   - Collect password
+   - Upload student ID image
+4. Store:
+   studentIdImage
+   studentIdVerified = false
+   trustScore = 50
+
+Login page must only contain:
+- Email
+- Password
+
+-------------------------------------------------------
+TASK 3 — REPAIR CLERK AUTH SYSTEM
+-------------------------------------------------------
+
+1. Ensure ClerkProvider wraps the React app properly.
+2. Ensure correct publishable key is used.
+3. Backend must use requireAuth() middleware.
+4. Verify JWT token correctly.
+5. Fix redirect:
+   - After login → dashboard
+   - After logout → homepage
+6. Fix any infinite loading or session errors.
+
+-------------------------------------------------------
+TASK 4 — ADD DEMO ITEMS IN EACH CATEGORY
+-------------------------------------------------------
+
+Add at least one item in each category:
+
+Categories:
+- Electronics
+- Furniture
+- Books
+- Bicycles
+- Hostel Essentials
+
+IMPORTANT:
+Use fake/demo placeholder images instead of real uploads.
+
+Use:
+https://via.placeholder.com/300
+OR
+https://picsum.photos/300
+
+Each item must include:
+- id
+- title
+- description
+- price
+- category
+- sellerId
+- trustScore
+- imageUrl (placeholder link)
+
+Create seed script if needed.
+
+-------------------------------------------------------
+TASK 5 — FIX VIEW DETAILS PAGE
+-------------------------------------------------------
+
+Fix route:
+/listing/:id
+
+Ensure:
+- Correct data fetch
+- Loading state
+- Proper error handling
+- Display:
+   - Placeholder image
+   - Full description
+   - Price
+   - Seller trust score
+   - Student ID verified badge
+   - Buy button
+
+If user not logged in:
+Display:
+"Please login to purchase."
+
+-------------------------------------------------------
+TASK 6 — ENSURE FAKE IMAGE HANDLING
+-------------------------------------------------------
+
+Do NOT require real image uploads for demo.
+If no image provided:
+Automatically assign placeholder image.
+
+Never break UI due to missing images.
+
+-------------------------------------------------------
+TASK 7 — SECURITY CHECK
+-------------------------------------------------------
+
+- Keep Clerk authentication.
+- Do not expose secret keys.
+- Protect Razorpay routes.
+- Validate all inputs.
+- Keep trust score logic intact.
+
+-------------------------------------------------------
+OUTPUT REQUIRED
+-------------------------------------------------------
+
+Return:
+
+1. Updated backend code
+2. Updated frontend code
+3. Seed demo data
+4. Updated authentication flow
+5. Explanation of fixes
+
+The system must run smoothly in Replit demo mode
+with no domain restriction and no real image dependency.

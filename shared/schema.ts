@@ -43,7 +43,9 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, trustScore: true, totalTransactions: true, rating: true, createdAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, trustScore: true, totalTransactions: true, rating: true, createdAt: true }).extend({
+  studentIdImage: z.string().optional(),
+});
 export const insertListingSchema = createInsertSchema(listings).omit({ id: true, status: true, createdAt: true });
 export const insertOrderSchema = createInsertSchema(orders).omit({ id: true, status: true, razorpayOrderId: true, razorpayPaymentId: true, commissionAmount: true, createdAt: true });
 

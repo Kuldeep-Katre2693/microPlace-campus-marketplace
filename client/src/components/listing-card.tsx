@@ -19,9 +19,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
         <Card className="overflow-hidden h-full border hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer group bg-card">
           <div className="aspect-[4/3] overflow-hidden relative">
             <img 
-              src={listing.images[0]} 
+              src={listing.images[0] || "https://via.placeholder.com/300"} 
               alt={listing.title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "https://via.placeholder.com/300";
+              }}
             />
             <div className="absolute top-2 right-2">
               <Badge variant="secondary" className="backdrop-blur-md bg-white/80 font-bold text-primary">
@@ -50,7 +53,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
             <h3 className="font-display font-bold text-lg leading-tight mb-2 line-clamp-1 group-hover:text-primary transition-colors">
               {listing.title}
             </h3>
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-4 h-10">
               {listing.description}
             </p>
           </CardContent>

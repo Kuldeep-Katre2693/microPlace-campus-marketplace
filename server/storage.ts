@@ -32,8 +32,14 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
   
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+  async createUser(insertUser: any): Promise<User> {
+    const { studentIdImage, ...userData } = insertUser;
+    const [user] = await db.insert(users).values({
+      ...userData,
+      clerkId: userData.clerkId || `local_${Date.now()}`,
+      studentIdVerified: false,
+      trustScore: 50,
+    }).returning();
     return user;
   }
   

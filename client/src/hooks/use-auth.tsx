@@ -58,10 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: any) => {
     setIsLoading(true);
     try {
-      if (!data.email.endsWith("@priyadarshini.edu")) {
-        throw new Error("Only @priyadarshini.edu emails are allowed.");
-      }
-
       const res = await fetch(api.auth.register.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

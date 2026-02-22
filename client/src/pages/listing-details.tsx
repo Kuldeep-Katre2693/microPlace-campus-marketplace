@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ArrowLeft, ShieldCheck, MapPin, Tag } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import type { Listing, User } from "@shared/schema";
 
 export default function ListingDetails() {
   const { id } = useParams();
+  const { user } = useAuth();
   
   const { data: listing, isLoading: isLoadingListing } = useQuery<Listing>({
     queryKey: [`/api/listings/${id}`],
@@ -56,9 +58,12 @@ export default function ListingDetails() {
           <div className="space-y-4">
             <div className="aspect-square rounded-3xl overflow-hidden bg-muted border shadow-inner">
               <img 
-                src={listing.images[0]} 
+                src={listing.images[0] || "https://via.placeholder.com/300"} 
                 alt={listing.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://via.placeholder.com/300";
+                }}
               />
             </div>
           </div>
@@ -78,19 +83,25 @@ export default function ListingDetails() {
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
-                    {seller?.name[0]}
+                    {seller?.name?.[0] || "S"}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-bold">{seller?.name}</p>
+                      <p className="font-bold">{seller?.name || "Seller"}</p>
                       {seller?.studentIdVerified && (
                         <ShieldCheck className="w-4 h-4 text-primary" title="Verified Student" />
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">Trust Score: {seller?.trustScore}/100</p>
+                    <p className="text-sm text-muted-foreground">Trust Score: {seller?.trustScore || 50}/100</p>
                   </div>
                 </div>
-                <Button className="w-full" size="lg">Contact Seller</Button>
+                {user ? (
+                  <Button className="w-full" size="lg">Contact Seller</Button>
+                ) : (
+                  <Link href="/auth">
+                    <Button className="w-full" size="lg">Please login to purchase</Button>
+                  </Link>
+                )}
               </CardContent>
             </Card>
 
