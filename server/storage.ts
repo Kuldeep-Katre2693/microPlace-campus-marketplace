@@ -37,8 +37,9 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.insert(users).values({
       ...userData,
       clerkId: userData.clerkId || `local_${Date.now()}`,
-      studentIdVerified: false,
-      trustScore: 50,
+      studentIdVerified: userData.studentIdVerified ?? false,
+      trustScore: userData.trustScore ?? 50,
+      totalTransactions: userData.totalTransactions ?? 0,
     }).returning();
     return user;
   }

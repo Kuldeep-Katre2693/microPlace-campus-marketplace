@@ -26,6 +26,11 @@ export const listings = pgTable("listings", {
   condition: text("condition").notNull(),
   images: text("images").array().notNull(),
   status: text("status").default("active"),
+  fairPrice: integer("fair_price"),
+  quickSellPrice: integer("quick_sell_price"),
+  premiumPrice: integer("premium_price"),
+  demandLevel: text("demand_level"),
+  confidenceScore: integer("confidence_score"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

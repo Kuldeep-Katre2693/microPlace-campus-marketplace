@@ -28,6 +28,52 @@ export default function Home() {
     });
   }, [listings, searchQuery, selectedCategory]);
 
+  const [isAiSearching, setIsAiSearching] = useState(false);
+
+  const handleSearch = async (val: string) => {
+    setSearchQuery(val);
+    if (val.length > 10) { // Natural language threshold
+      setIsAiSearching(true);
+      try {
+        const res = await fetch("/api/search/intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: val })
+        });
+        const data = await res.json();
+        // Update search logic with keywords/categories from AI
+        console.log("AI Intent:", data);
+      } catch (e) {
+        console.error("AI Search failed");
+      } finally {
+        setIsAiSearching(false);
+      }
+    }
+  };
+
+  const recommendations = [
+    {
+      id: 101,
+      title: "Deep Learning Specialization Books",
+      price: 2500,
+      category: "Books",
+      condition: "Like New",
+      images: ["https://info.deeplearning.ai/hubfs/1645724689.png"],
+      sellerId: 1,
+      trustBadge: true
+    },
+    {
+      id: 102,
+      title: "Scientific Calculator Casio",
+      price: 1200,
+      category: "Electronics",
+      condition: "Good",
+      images: ["https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSr-Azx7aTbgWgXbTnXLYT82Ob429FCx13wBXyblI9itHyDlm0XxkA_4FRN6YU3Z-5fO_ZB8d6s7E9enA49PD9zVHPCYm-G2OP5sSHBNFOfvBCeS7IMHVFDSfJQs9SEHMf4nn6aPZ0&usqp=CAc"],
+      sellerId: 1,
+      trustBadge: true
+    }
+  ];
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -51,23 +97,40 @@ export default function Home() {
             </p>
             
             <div className="max-w-2xl mx-auto relative flex items-center">
-              <Search className="absolute left-4 w-5 h-5 text-muted-foreground" />
+              <Search className={`absolute left-4 w-5 h-5 ${isAiSearching ? "text-primary animate-pulse" : "text-muted-foreground"}`} />
               <Input 
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for textbooks, calculators, lab coats..." 
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Try: 'I have photoshoot tomorrow' or 'Engineering mechanics'" 
                 className="pl-12 pr-12 h-14 rounded-full text-lg shadow-xl shadow-primary/5 border-primary/20 focus-visible:ring-primary/20"
               />
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-4 p-1 hover:bg-muted rounded-full"
-                >
-                  <X className="w-5 h-5 text-muted-foreground" />
-                </button>
-              )}
+              <div className="absolute right-4 flex items-center gap-2">
+                {isAiSearching && <span className="text-xs font-bold text-primary animate-pulse">✨ AI Thinking</span>}
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery("")}
+                    className="p-1 hover:bg-muted rounded-full"
+                  >
+                    <X className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Fresh Recommendations */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold font-display mb-8 flex items-center gap-2">
+            🔥 Fresh Recommendations <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20">✨ AI Powered</span>
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {recommendations.map((item) => (
+              <ListingCard key={item.id} listing={item as any} />
+            ))}
+          </div>
         </div>
       </section>
 

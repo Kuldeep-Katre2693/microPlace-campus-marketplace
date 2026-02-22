@@ -50,16 +50,26 @@ export default function NewListing() {
   }
 
   const handleAnalyze = async () => {
-    if (!formData.title || !formData.category || !formData.condition) {
-      toast({ title: "Please fill in basic details first", variant: "destructive" });
+    if (!formData.title && !formData.images[0]) {
+      toast({ title: "Please provide a title or image first", variant: "destructive" });
       return;
     }
     const result = await analyzeMutation.mutateAsync({
       title: formData.title,
       category: formData.category,
-      condition: formData.condition
+      condition: formData.condition,
+      image: formData.images[0]
+    });
+    setFormData({
+      ...formData,
+      title: result.title,
+      description: result.description,
+      category: result.category,
+      condition: result.condition,
+      price: result.fair_price.toString()
     });
     setAnalysis(result);
+    toast({ title: "✨ AI fields updated!" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
