@@ -124,19 +124,26 @@ export default function NewListing() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Category</Label>
-                      <Select onValueChange={v => setFormData({...formData, category: v})}>
+                      <Select 
+                        value={formData.category}
+                        onValueChange={v => setFormData({...formData, category: v})}
+                      >
                         <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Books">Textbooks</SelectItem>
                           <SelectItem value="Electronics">Electronics</SelectItem>
                           <SelectItem value="Stationery">Stationery</SelectItem>
                           <SelectItem value="Clothing">Clothing</SelectItem>
+                          <SelectItem value="General">General</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
                       <Label>Condition</Label>
-                      <Select onValueChange={v => setFormData({...formData, condition: v})}>
+                      <Select 
+                        value={formData.condition}
+                        onValueChange={v => setFormData({...formData, condition: v})}
+                      >
                         <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="New">Brand New</SelectItem>
