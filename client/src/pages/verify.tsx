@@ -8,8 +8,8 @@ import { useDropzone } from "react-dropzone";
 import { motion } from "framer-motion";
 
 // Import fake assets for demo
-import idCard1 from "@assets/WhatsApp_Image_2026-02-22_at_10.01.43_AM_1771734711418.jpeg";
-import idCard2 from "@assets/WhatsApp_Image_2026-02-22_at_10.02.07_AM_1771734729706.jpeg";
+import idCard1 from "@assets/image_1771737095548.png";
+import idCard2 from "@assets/image_1771737101962.png";
 
 export default function VerifyPage() {
   const { user, verifyStudentId } = useAuth();

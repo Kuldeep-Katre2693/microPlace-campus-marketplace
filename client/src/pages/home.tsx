@@ -4,11 +4,29 @@ import { ListingCard } from "@/components/listing-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Search, Filter, AlertCircle } from "lucide-react";
+import { Search, Filter, AlertCircle, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState, useMemo } from "react";
 
 export default function Home() {
   const { data: listings, isLoading } = useListings();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const filteredListings = useMemo(() => {
+    if (!listings) return [];
+    return listings.filter((listing) => {
+      const matchesSearch = 
+        listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        listing.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = 
+        selectedCategory === "All" || 
+        listing.category === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [listings, searchQuery, selectedCategory]);
 
   return (
     <Layout>
@@ -35,12 +53,19 @@ export default function Home() {
             <div className="max-w-2xl mx-auto relative flex items-center">
               <Search className="absolute left-4 w-5 h-5 text-muted-foreground" />
               <Input 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for textbooks, calculators, lab coats..." 
-                className="pl-12 pr-32 h-14 rounded-full text-lg shadow-xl shadow-primary/5 border-primary/20 focus-visible:ring-primary/20"
+                className="pl-12 pr-12 h-14 rounded-full text-lg shadow-xl shadow-primary/5 border-primary/20 focus-visible:ring-primary/20"
               />
-              <Button className="absolute right-2 h-10 rounded-full px-6">
-                Search
-              </Button>
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-4 p-1 hover:bg-muted rounded-full"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              )}
             </div>
           </motion.div>
         </div>
@@ -50,11 +75,12 @@ export default function Home() {
       <section className="py-12 border-b">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-4 justify-center">
-            {["All", "Textbooks", "Electronics", "Stationery", "Clothing", "Dorm Essentials"].map((cat) => (
+            {["All", "Academic", "Electronics", "Stationery", "Clothing", "Dorm Essentials"].map((cat) => (
               <Button 
                 key={cat} 
-                variant="outline" 
-                className="rounded-full hover:border-primary hover:text-primary transition-all"
+                variant={selectedCategory === cat ? "default" : "outline"}
+                onClick={() => setSelectedCategory(cat)}
+                className="rounded-full transition-all"
               >
                 {cat}
               </Button>
@@ -70,9 +96,11 @@ export default function Home() {
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold font-display">Fresh Recommendations</h2>
+            <h2 className="text-2xl font-bold font-display">
+              {searchQuery || selectedCategory !== "All" ? "Search Results" : "Fresh Recommendations"}
+            </h2>
             <Link href="/listings/new">
-              <Button variant="link" className="text-primary">View All &rarr;</Button>
+              <Button variant="link" className="text-primary">List an Item &rarr;</Button>
             </Link>
           </div>
 
@@ -82,9 +110,9 @@ export default function Home() {
                 <div key={i} className="h-[400px] rounded-2xl bg-muted animate-pulse" />
               ))}
             </div>
-          ) : listings && listings.length > 0 ? (
+          ) : filteredListings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {listings.map((listing) => (
+              {filteredListings.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
             </div>
@@ -92,10 +120,16 @@ export default function Home() {
             <div className="text-center py-20 bg-muted/20 rounded-3xl">
               <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-bold mb-2">No listings found</h3>
-              <p className="text-muted-foreground mb-6">Be the first to list something!</p>
-              <Link href="/listings/new">
-                <Button>Create Listing</Button>
-              </Link>
+              <p className="text-muted-foreground mb-6">Try adjusting your search or category filters.</p>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("All");
+                }}
+              >
+                Reset Filters
+              </Button>
             </div>
           )}
         </div>

@@ -130,24 +130,60 @@ export async function registerRoutes(
   // Seed data
   setTimeout(async () => {
     try {
-      const listings = await storage.getListings();
-      if (listings.length === 0) {
-        const seller = await storage.createUser({
-          clerkId: "mock_clerk_123",
-          name: "Test User",
-          email: "test@priyadarshini.edu",
-          password: "password123",
+      const existingUsers = await storage.getUserByEmail("bokdesaurabh802@gmail.com");
+      if (!existingUsers) {
+        const user1 = await storage.createUser({
+          clerkId: "user_1",
+          name: "Himanshu Bokde",
+          email: "bokdesaurabh802@gmail.com",
+          password: "password123456",
+          studentId: "230400033",
+          studentIdVerified: true,
+          trustScore: 90,
         });
-        
-        await storage.createListing({
-          sellerId: seller.id,
-          title: "Engineering Drawing Kit",
-          description: "Complete mini-drafter kit, barely used.",
-          price: 500,
-          category: "Academic",
-          condition: "Like New",
-          images: ["https://images.unsplash.com/photo-1506784365847-bbad939e9335"]
+
+        const user2 = await storage.createUser({
+          clerkId: "user_2",
+          name: "Kuldeep Katre",
+          email: "kuldeepkatre2693@gmail.com",
+          password: "password112233",
+          studentId: "230400034",
+          studentIdVerified: true,
+          trustScore: 85,
         });
+
+        const listings = await storage.getListings();
+        if (listings.length === 0) {
+          await storage.createListing({
+            sellerId: user1.id,
+            title: "Engineering Drawing Kit",
+            description: "Complete mini-drafter kit, barely used. Perfect for first-year students.",
+            price: 500,
+            category: "Academic",
+            condition: "Like New",
+            images: ["https://images.unsplash.com/photo-1506784365847-bbad939e9335"]
+          });
+
+          await storage.createListing({
+            sellerId: user2.id,
+            title: "Scientific Calculator Casio FX-991EX",
+            description: "Advanced scientific calculator, essential for all engineering branches.",
+            price: 800,
+            category: "Electronics",
+            condition: "Good",
+            images: ["https://images.unsplash.com/photo-1587145820266-a5951ee6f620"]
+          });
+
+          await storage.createListing({
+            sellerId: user1.id,
+            title: "Lab Coat - Size L",
+            description: "Clean lab coat, used only for chemistry labs.",
+            price: 200,
+            category: "Academic",
+            condition: "Used",
+            images: ["https://images.unsplash.com/photo-1584622650111-993a426fbf0a"]
+          });
+        }
       }
     } catch (e) {
       console.error("Failed to seed:", e);
