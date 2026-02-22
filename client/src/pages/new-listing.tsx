@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function NewListing() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { toast } = useToast();
   
   const createMutation = useCreateListing();
@@ -33,6 +33,16 @@ export default function NewListing() {
 
   const [analysis, setAnalysis] = useState<any>(null);
   const [scamCheck, setScamCheck] = useState<any>(null);
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!user) {
     setLocation("/auth");
