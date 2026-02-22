@@ -42,9 +42,18 @@ export async function registerRoutes(
   app.post(api.auth.verifyId.path, async (req, res) => {
     try {
       const input = api.auth.verifyId.input.parse(req.body);
-      const updated = await storage.updateUser(input.userId, { studentIdVerified: true, trustScore: 60 });
-      res.status(200).json({ success: true, studentId: "PC-2025-12345", message: "ID verified successfully" });
+      // For demo, we just update the user's verification status
+      const updated = await storage.updateUser(input.userId, { 
+        studentIdVerified: true, 
+        trustScore: 95 
+      });
+      res.status(200).json({ 
+        success: true, 
+        studentId: "DEMO-" + Math.floor(Math.random() * 100000), 
+        message: "ID verified successfully" 
+      });
     } catch (err) {
+      console.error("Verification error:", err);
       res.status(400).json({ message: "Invalid input" });
     }
   });
@@ -131,105 +140,138 @@ export async function registerRoutes(
   // Seed data
   setTimeout(async () => {
     try {
-      const existingUsers = await storage.getUserByEmail("bokdesaurabh802@gmail.com");
-      if (!existingUsers) {
-        const user1 = await storage.createUser({
-          clerkId: "user_1",
+      const existingUser1 = await storage.getUserByEmail("bokdesaurabh802@gmail.com");
+      if (!existingUser1) {
+        await storage.createUser({
           name: "Himanshu Bokde",
           email: "bokdesaurabh802@gmail.com",
           password: "password123456",
-          studentId: "230400033",
+          clerkId: "demo_user_1",
           studentIdVerified: true,
-          trustScore: 90,
+          trustScore: 95,
         });
+      }
 
-        const user2 = await storage.createUser({
-          clerkId: "user_2",
-          name: "Kuldeep Katre",
-          email: "kuldeepkatre2693@gmail.com",
+      const existingUser2 = await storage.getUserByEmail("divyanimore1234@gmail.com");
+      if (!existingUser2) {
+        await storage.createUser({
+          name: "Divyani More",
+          email: "divyanimore1234@gmail.com",
           password: "password112233",
-          studentId: "230400034",
+          clerkId: "demo_user_2",
           studentIdVerified: true,
-          trustScore: 85,
+          trustScore: 98,
         });
+      }
 
-        const listings = await storage.getListings();
-        if (listings.length === 0) {
-          await storage.createListing({
-            sellerId: user1.id,
-            title: "Engineering Drawing Kit",
-            description: "Complete mini-drafter kit, barely used. Perfect for first-year students.",
-            price: 500,
-            category: "Academic",
-            condition: "Like New",
-            images: ["https://images.unsplash.com/photo-1506784365847-bbad939e9335"]
-          });
+      const listings = await storage.getListings();
+      if (listings.length < 10) {
+        const user1 = await storage.getUserByEmail("bokdesaurabh802@gmail.com");
+        const user2 = await storage.getUserByEmail("divyanimore1234@gmail.com");
 
-          await storage.createListing({
-            sellerId: user2.id,
-            title: "Scientific Calculator FX-991EX",
-            description: "Advanced scientific calculator, essential for all engineering branches.",
-            price: 800,
-            category: "Electronics",
-            condition: "Good",
-            images: ["https://images.unsplash.com/photo-1587145820266-a5951ee6f620"]
-          });
+        if (user1 && user2) {
+          const demoItems = [
+            {
+              sellerId: user1.id,
+              title: "MacBook Pro M2",
+              description: "Space gray, 16GB RAM, 512GB SSD. Excellent condition.",
+              price: 85000,
+              category: "Electronics",
+              condition: "Like New",
+              images: ["https://picsum.photos/seed/macbook/400/300"]
+            },
+            {
+              sellerId: user2.id,
+              title: "iPhone 14 Pro",
+              description: "Deep Purple, 128GB. Always used with case and screen protector.",
+              price: 65000,
+              category: "Electronics",
+              condition: "Good",
+              images: ["https://picsum.photos/seed/iphone/400/300"]
+            },
+            {
+              sellerId: user1.id,
+              title: "Study Table - Wooden",
+              description: "Spacious wooden study table with 3 drawers. Perfect for students.",
+              price: 3500,
+              category: "Furniture",
+              condition: "Good",
+              images: ["https://picsum.photos/seed/table/400/300"]
+            },
+            {
+              sellerId: user2.id,
+              title: "Ergonomic Office Chair",
+              description: "Adjustable height and lumbar support. Very comfortable for long study hours.",
+              price: 2800,
+              category: "Furniture",
+              condition: "Like New",
+              images: ["https://picsum.photos/seed/chair/400/300"]
+            },
+            {
+              sellerId: user1.id,
+              title: "Concepts of Physics - HC Verma",
+              description: "Both volumes (1 & 2). Essential for engineering entrance and foundation.",
+              price: 600,
+              category: "Books",
+              condition: "Used",
+              images: ["https://picsum.photos/seed/books/400/300"]
+            },
+            {
+              sellerId: user2.id,
+              title: "Engineering Mechanics - S.S. Bhavikatti",
+              description: "Standard textbook for first year engineering. No markings.",
+              price: 400,
+              category: "Books",
+              condition: "Like New",
+              images: ["https://picsum.photos/seed/textbook/400/300"]
+            },
+            {
+              sellerId: user1.id,
+              title: "Gear Cycle - Firefox",
+              description: "21-speed Shimano gears. Front suspension. Great for campus commuting.",
+              price: 12000,
+              category: "Bicycles",
+              condition: "Used",
+              images: ["https://picsum.photos/seed/cycle/400/300"]
+            },
+            {
+              sellerId: user2.id,
+              title: "City Hybrid Bicycle",
+              description: "Lightweight frame, smooth tires. Includes mudguards and a bell.",
+              price: 8000,
+              category: "Bicycles",
+              condition: "Good",
+              images: ["https://picsum.photos/seed/bike2/400/300"]
+            },
+            {
+              sellerId: user1.id,
+              title: "Rechargeable LED Desk Lamp",
+              description: "3 brightness levels, touch control. Built-in battery for power cuts.",
+              price: 750,
+              category: "Hostel Essentials",
+              condition: "Like New",
+              images: ["https://picsum.photos/seed/lamp/400/300"]
+            },
+            {
+              sellerId: user2.id,
+              title: "Laundry Basket & Drying Rack",
+              description: "Foldable laundry basket and a compact cloth drying rack.",
+              price: 900,
+              category: "Hostel Essentials",
+              condition: "Good",
+              images: ["https://picsum.photos/seed/laundry/400/300"]
+            }
+          ];
 
-          await storage.createListing({
-            sellerId: user1.id,
-            title: "Lab Coat - Size L",
-            description: "Clean lab coat, used only for chemistry labs.",
-            price: 200,
-            category: "Academic",
-            condition: "Used",
-            images: ["https://images.unsplash.com/photo-1584622650111-993a426fbf0a"]
-          });
-
-          await storage.createListing({
-            sellerId: user2.id,
-            title: "Standard Textbook: Engineering Math",
-            description: "HK Dass, latest edition. Very helpful for M1, M2.",
-            price: 450,
-            category: "Academic",
-            condition: "Like New",
-            images: ["https://images.unsplash.com/photo-1532012197267-da84d127e765"]
-          });
-
-          await storage.createListing({
-            sellerId: user2.id,
-            title: "Study Desk and Chair",
-            description: "Ergonomic chair and sturdy wooden desk for hostel room.",
-            price: 2500,
-            category: "Furniture",
-            condition: "Good",
-            images: ["https://picsum.photos/seed/furniture/300"]
-          });
-
-          await storage.createListing({
-            sellerId: user1.id,
-            title: "Mountain Bicycle",
-            description: "Hercules mountain bike, 18 gears, well maintained.",
-            price: 4500,
-            category: "Bicycles",
-            condition: "Used",
-            images: ["https://picsum.photos/seed/bike/300"]
-          });
-
-          await storage.createListing({
-            sellerId: user2.id,
-            title: "Electric Kettle",
-            description: "1.5L electric kettle, useful for making tea/coffee in hostel.",
-            price: 600,
-            category: "Hostel Essentials",
-            condition: "Like New",
-            images: ["https://picsum.photos/seed/kettle/300"]
-          });
+          for (const item of demoItems) {
+            await storage.createListing(item);
+          }
         }
       }
     } catch (e) {
       console.error("Failed to seed:", e);
     }
-  }, 1000);
+  }, 2000);
 
   return httpServer;
 }
