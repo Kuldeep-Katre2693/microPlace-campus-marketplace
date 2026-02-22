@@ -1,0 +1,240 @@
+You are a senior full-stack architect and AI engineer.
+
+Build a complete production-ready campus marketplace platform named:
+
+🌐 MicroPlace
+
+Theme:
+Campus-only trusted marketplace for Priyadarshini College students.
+
+Tech Stack:
+- Node.js
+- Express
+- PostgreSQL (or Supabase)
+- Razorpay (UPI enabled)
+- OpenAI API (for AI features)
+- React frontend
+- Secure environment variables
+
+--------------------------------------------------
+CORE SYSTEM REQUIREMENTS
+--------------------------------------------------
+
+1. CAMPUS RESTRICTED AUTH SYSTEM
+
+- Allow signup only with:
+  *@priyadarshini.edu*
+- Add Student ID verification:
+   - User must upload student ID image
+   - AI OCR extracts name + ID number
+   - Validate format:
+     PC-YYYY-XXXXX
+   - If invalid → reject verification
+- Add manual admin approval option
+
+User model:
+{
+  id,
+  name,
+  email,
+  studentId,
+  studentIdVerified,
+  trustScore,
+  totalTransactions,
+  rating,
+  createdAt
+}
+
+--------------------------------------------------
+2. TRUST SCORE SYSTEM (Core Hackathon Feature)
+--------------------------------------------------
+
+Implement dynamic Trust Score (0–100)
+
+Base Score: 50
+
+Increase score:
++10 after verified student ID
++5 per successful transaction
++2 per positive review
++3 profile completeness
+
+Decrease score:
+-10 cancelled transaction
+-15 reported listing
+-20 confirmed scam
+
+Risk categories:
+80-100 → Trusted Seller 🟢
+60-79 → Safe Seller 🟡
+Below 60 → Risk Seller 🔴
+
+Display badge on profile.
+
+Auto-update trust score after each event.
+
+--------------------------------------------------
+3. AI PRICE SUGGESTION SYSTEM
+--------------------------------------------------
+
+When user creates listing:
+
+Use OpenAI API to:
+- Analyze product name
+- Analyze condition
+- Analyze category
+- Suggest:
+   - Fair market price
+   - Quick sell price
+   - Premium price
+   - Demand level (Low/Medium/High)
+
+Prompt logic:
+You are a campus pricing intelligence system.
+Estimate fair resale value for Priyadarshini College students.
+
+Return JSON:
+{
+  fair_price: "",
+  quick_sell_price: "",
+  premium_price: "",
+  demand_level: "",
+  confidence_score: ""
+}
+
+Show suggestion before listing is published.
+
+--------------------------------------------------
+4. AI SCAM DETECTION ENGINE
+--------------------------------------------------
+
+Before publishing listing:
+
+AI checks:
+- Suspicious keywords
+- Unrealistic pricing
+- Urgency manipulation
+- Duplicate content
+
+Return:
+{
+  risk_level: "",
+  scam_probability: "",
+  trust_score_adjustment: ""
+}
+
+Block listing if High Risk.
+
+--------------------------------------------------
+5. RAZORPAY UPI PAYMENT SYSTEM
+--------------------------------------------------
+
+Backend:
+- POST /create-order
+- POST /verify-payment
+
+Features:
+- 5% platform commission
+- Escrow logic:
+   CREATED → PAID → HOLD → RELEASED
+- Release only when buyer confirms item received
+- Store:
+   orderId
+   paymentId
+   buyerId
+   sellerId
+   commissionAmount
+   status
+
+Frontend:
+- Use Razorpay Checkout
+- Enable UPI option
+- Payment success animation
+
+--------------------------------------------------
+6. PRE-APPROVED SAFE CAMPUS MEETING ZONES
+--------------------------------------------------
+
+Create predefined safe meeting locations:
+
+- Priyadarshini College Main Gate
+- Library Entrance
+- Admin Office Lobby
+- Security Cabin
+- Canteen Front Area
+
+While checkout:
+User must select meeting zone.
+
+Display:
+🛡 "Verified Campus Safe Zone"
+
+Store meeting location in order record.
+
+--------------------------------------------------
+7. WEBSITE DESIGN REQUIREMENTS
+--------------------------------------------------
+
+Website Name:
+"MicroPlace"
+
+Add vector-style icon logo in header:
+Example:
+- Minimal marketplace icon
+- Shopping bag + graduation cap
+- Flat SVG vector style
+
+Title format:
+🛒 MicroPlace – Priyadarshini College Marketplace
+
+Use modern clean UI:
+- White + campus blue theme
+- Trust badge colors
+- Clean card-based listings
+
+--------------------------------------------------
+8. EXTRA WINNING FEATURES
+--------------------------------------------------
+
+Add:
+- Sustainability badge:
+   "You saved X kg CO₂ by buying used."
+- Analytics dashboard:
+   - Total listings
+   - Total revenue
+   - Total commission earned
+   - Top categories
+- Report system
+- Rating system (1–5 stars)
+
+--------------------------------------------------
+9. SECURITY REQUIREMENTS
+--------------------------------------------------
+
+- Never expose Razorpay secret key
+- Verify payment signature using HMAC SHA256
+- Validate amount on backend
+- Protect routes using JWT authentication
+- Rate limit listing creation
+
+--------------------------------------------------
+10. OUTPUT FORMAT
+
+Provide:
+- Folder structure
+- Backend code (fully working)
+- Frontend code (React)
+- Database schema
+- Environment variable setup
+- Razorpay test mode setup instructions
+- Example test UPI usage
+
+Comment code clearly.
+
+Make the system hackathon demo ready.
+
+--------------------------------------------------
+
+Goal:
+A clean, secure, AI-powered, trust-driven campus marketplace
+that feels production-ready and impressive for judges.
