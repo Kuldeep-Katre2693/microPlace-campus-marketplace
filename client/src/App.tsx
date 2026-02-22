@@ -12,6 +12,7 @@ import AuthPage from "@/pages/auth";
 import VerifyPage from "@/pages/verify";
 import NewListing from "@/pages/new-listing";
 import Dashboard from "@/pages/dashboard";
+import ListingDetails from "@/pages/listing-details";
 
 function Router() {
   return (
@@ -20,8 +21,8 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/verify" component={VerifyPage} />
       <Route path="/listings/new" component={NewListing} />
+      <Route path="/listings/:id" component={ListingDetails} />
       <Route path="/dashboard" component={Dashboard} />
-      {/* <Route path="/listings/:id" component={ListingDetail} /> */}
       <Route component={NotFound} />
     </Switch>
   );

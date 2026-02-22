@@ -127,6 +127,12 @@ export async function registerRoutes(
     res.status(200).json(user);
   });
 
+  app.get("/api/listings/:id", async (req, res) => {
+    const listing = await storage.getListing(Number(req.params.id));
+    if (!listing) return res.status(404).json({ message: "Listing not found" });
+    res.status(200).json(listing);
+  });
+
   // Seed data
   setTimeout(async () => {
     try {
@@ -166,7 +172,7 @@ export async function registerRoutes(
 
           await storage.createListing({
             sellerId: user2.id,
-            title: "Scientific Calculator Casio FX-991EX",
+            title: "Scientific Calculator FX-991EX",
             description: "Advanced scientific calculator, essential for all engineering branches.",
             price: 800,
             category: "Electronics",
@@ -182,6 +188,26 @@ export async function registerRoutes(
             category: "Academic",
             condition: "Used",
             images: ["https://images.unsplash.com/photo-1584622650111-993a426fbf0a"]
+          });
+
+          await storage.createListing({
+            sellerId: user2.id,
+            title: "Standard Textbook: Engineering Math",
+            description: "HK Dass, latest edition. Very helpful for M1, M2.",
+            price: 450,
+            category: "Academic",
+            condition: "Like New",
+            images: ["https://images.unsplash.com/photo-1532012197267-da84d127e765"]
+          });
+
+          await storage.createListing({
+            sellerId: user1.id,
+            title: "Bluetooth Earbuds",
+            description: "Boat Airdopes, noise cancelling. Good for study sessions.",
+            price: 1200,
+            category: "Electronics",
+            condition: "Good",
+            images: ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df"]
           });
         }
       }
