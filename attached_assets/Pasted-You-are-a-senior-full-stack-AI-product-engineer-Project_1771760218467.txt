@@ -1,0 +1,167 @@
+You are a senior full-stack AI product engineer.
+
+Project: MicroPlace (Campus Marketplace)
+Stack:
+- Node.js
+- Express
+- PostgreSQL
+- React
+- OpenAI API
+- JWT authentication
+
+Upgrade the application with the following professional features.
+
+---------------------------------------------------------
+1️⃣ UPGRADE SELL ITEM SECTION (AI-POWERED)
+---------------------------------------------------------
+
+Currently, Sell Item asks for image manually.
+
+Upgrade it to:
+
+Step 1:
+User uploads image OR enters basic title.
+
+Step 2:
+Use OpenAI API to automatically:
+- Detect item type
+- Generate title
+- Generate clean description
+- Suggest category
+- Suggest condition
+- Calculate:
+    - fair_price
+    - quick_sell_price
+    - premium_price
+    - demand_level
+    - confidence_score
+
+Use this structured OpenAI prompt internally:
+
+"You are an AI pricing and product intelligence system for a campus marketplace.
+Analyze the uploaded product image or title.
+Generate:
+- Professional title
+- Clean description
+- Suggested category
+- Condition estimate
+- Fair resale price in INR
+- Quick sell price
+- Premium price
+- Demand level (Low/Medium/High)
+- Confidence score (0-100)
+Return JSON."
+
+Auto-fill the form with AI response.
+User can edit before publishing.
+
+---------------------------------------------------------
+2️⃣ SMART NATURAL LANGUAGE SEARCH
+---------------------------------------------------------
+
+Upgrade search bar from keyword-based to intent-based.
+
+User can type:
+"I have photoshoot tomorrow"
+
+System should:
+- Detect intent
+- Map to relevant products
+- Search for: Camera, Tripod, Lighting equipment
+
+Use OpenAI to classify user query.
+
+Prompt internally:
+
+"You are a search intent classifier for a campus marketplace.
+Convert user request into structured product search categories and keywords.
+Return:
+{
+  intent: "",
+  categories: [],
+  keywords: []
+}"
+
+Then perform DB search using extracted keywords.
+
+---------------------------------------------------------
+3️⃣ FRESH RECOMMENDATIONS SECTION
+---------------------------------------------------------
+
+Add a homepage section:
+
+Title: "🔥 Fresh Recommendations"
+
+Use these images:
+
+1.
+https://info.deeplearning.ai/hubfs/1645724689.png
+
+2.
+https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSr-Azx7aTbgWgXbTnXLYT82Ob429FCx13wBXyblI9itHyDlm0XxkA_4FRN6YU3Z-5fO_ZB8d6s7E9enA49PD9zVHPCYm-G2OP5sSHBNFOfvBCeS7IMHVFDSfJQs9SEHMf4nn6aPZ0&usqp=CAc
+
+3.
+https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSaxf39Vc24xRth-dU9PxvtW5UsWWKO36QxVIuMnyGNTWoncTUmHL5szsXCu62-YfypMAcSesOhfKGo6f2HvIRi4gwIcnlEfsXQca_5AH7Jfvfgid5WhnDxY24XK8vMPXvbEvbO37F3fw&usqp=CAc
+
+4.
+https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTDgp_KNFgnl1MRXbaDfkIIcxX-Coh8Nb7v8WqD55iKlGSiGaCnly_cInrOSiMovMr_mHBJprp29vcBHsuToUy2w63iguOZFEjPhAN7PLkxK4Uw2d14j15d2W8Ezl_ojR6inpeUKerh3k8
+
+5.
+Base64 image provided — use as placeholder demo image.
+
+Each recommendation should show:
+- AI-generated title
+- Price
+- Trust badge
+- Quick view button
+
+---------------------------------------------------------
+4️⃣ CREATE DEFAULT DEMO USER
+---------------------------------------------------------
+
+On server startup, seed a default user:
+
+Email: demo@example.com
+Password: password123
+
+Use bcrypt to hash password.
+Ensure user only created if not exists.
+
+Initialize:
+- trust_score = 85
+- student_id_verified = true
+- total_transactions = 5
+
+---------------------------------------------------------
+5️⃣ PERFORMANCE & STABILITY
+---------------------------------------------------------
+
+- Handle OpenAI errors gracefully.
+- Do not crash if AI fails.
+- Use environment variable:
+  OPENAI_API_KEY
+- Use fallback pricing if API fails.
+
+---------------------------------------------------------
+6️⃣ UI REQUIREMENTS
+---------------------------------------------------------
+
+- Modern clean design
+- Highlight AI-generated sections
+- Add "✨ AI Powered" badge near features
+- Responsive layout
+
+---------------------------------------------------------
+7️⃣ RETURN
+
+Return:
+
+- Updated backend routes
+- Updated React components
+- OpenAI integration code
+- Search intent logic
+- Seed logic for demo user
+- Fresh Recommendations component
+- Instructions to test
+
+The app must remain stable and production-ready.
