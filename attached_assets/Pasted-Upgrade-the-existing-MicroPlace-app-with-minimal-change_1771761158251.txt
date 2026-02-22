@@ -1,0 +1,129 @@
+Upgrade the existing MicroPlace app with minimal changes.
+Do NOT refactor the entire project.
+Keep implementation simple and stable.
+
+----------------------------------------------------
+1️⃣ UPGRADE SELL ITEM (AI-SIMULATED PRICING)
+----------------------------------------------------
+
+Add a simple rule-based pricing function.
+
+Create a utility function:
+
+function suggestPrice(title) {
+  const t = title.toLowerCase();
+
+  if (t.includes("camera")) {
+    return { fair_price: 15000, quick_sell_price: 13000, category: "Electronics" };
+  }
+  if (t.includes("cycle") || t.includes("bicycle")) {
+    return { fair_price: 3000, quick_sell_price: 2500, category: "Bicycles" };
+  }
+  if (t.includes("book")) {
+    return { fair_price: 500, quick_sell_price: 400, category: "Books" };
+  }
+
+  return { fair_price: 1000, quick_sell_price: 800, category: "General" };
+}
+
+When user types title in Sell Item form:
+- Auto-fill fair price
+- Auto-fill quick sell price
+- Auto-fill category
+- Show badge: "✨ AI Suggested Price"
+
+Do NOT use OpenAI.
+Do NOT modify database schema.
+
+----------------------------------------------------
+2️⃣ SMART SEARCH (INTENT SIMULATION)
+----------------------------------------------------
+
+Upgrade search function.
+
+Add simple intent mapping:
+
+function mapIntent(query) {
+  const q = query.toLowerCase();
+
+  if (q.includes("photoshoot")) {
+    return ["camera", "tripod", "lighting"];
+  }
+  if (q.includes("exam")) {
+    return ["calculator", "books"];
+  }
+  if (q.includes("hostel")) {
+    return ["kettle", "table", "chair"];
+  }
+
+  return [query];
+}
+
+Use returned keywords to search listings.
+
+Show label:
+"✨ Smart Search Enabled"
+
+Do NOT add external API calls.
+
+----------------------------------------------------
+3️⃣ FRESH RECOMMENDATIONS SECTION
+----------------------------------------------------
+
+Add homepage section:
+
+Title: "🔥 Fresh Recommendations"
+
+Use static images:
+
+1. https://info.deeplearning.ai/hubfs/1645724689.png
+2. https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSr-Azx7aTbgWgXbTnXLYT82Ob429FCx13wBXyblI9itHyDlm0XxkA_4FRN6YU3Z-5fO_ZB8d6s7E9enA49PD9zVHPCYm-G2OP5sSHBNFOfvBCeS7IMHVFDSfJQs9SEHMf4nn6aPZ0&usqp=CAc
+3. https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSaxf39Vc24xRth-dU9PxvtW5UsWWKO36QxVIuMnyGNTWoncTUmHL5szsXCu62-YfypMAcSesOhfKGo6f2HvIRi4gwIcnlEfsXQca_5AH7Jfvfgid5WhnDxY24XK8vMPXvbEvbO37F3fw&usqp=CAc
+4. https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTDgp_KNFgnl1MRXbaDfkIIcxX-Coh8Nb7v8WqD55iKlGSiGaCnly_cInrOSiMovMr_mHBJprp29vcBHsuToUy2w63iguOZFEjPhAN7PLkxK4Uw2d14j15d2W8Ezl_ojR6inpeUKerh3k8
+
+Each card shows:
+- Image
+- Static title
+- Price
+- Trust badge
+- Quick view button
+
+Do NOT connect this section to backend.
+Keep it static.
+
+----------------------------------------------------
+4️⃣ CREATE DEFAULT DEMO USER
+----------------------------------------------------
+
+On server startup, add seed logic:
+
+If user with email demo@example.com does not exist,
+create user:
+
+Email: demo@example.com
+Password: password123
+
+Hash password using bcrypt.
+Set:
+- trust_score = 85
+- student_id_verified = true
+- total_transactions = 5
+
+Ensure:
+- It does not duplicate user if already exists.
+- It does not crash server.
+
+----------------------------------------------------
+5️⃣ IMPORTANT RULES
+----------------------------------------------------
+
+- Do NOT change database schema.
+- Do NOT rewrite entire project.
+- Only add minimal functions and UI updates.
+- Keep app stable.
+- No OpenAI integration.
+- No large refactors.
+
+Return:
+- Modified files only.
+- Clear explanation of changes.

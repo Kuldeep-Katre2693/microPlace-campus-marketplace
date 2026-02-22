@@ -13,12 +13,27 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+  const handleSearch = (val: string) => {
+    setSearchQuery(val);
+  };
+
+  const mapIntent = (query: string) => {
+    const q = query.toLowerCase();
+    if (q.includes("photoshoot")) return ["camera", "tripod", "lighting"];
+    if (q.includes("exam")) return ["calculator", "books"];
+    if (q.includes("hostel")) return ["kettle", "table", "chair"];
+    return [query];
+  };
+
   const filteredListings = useMemo(() => {
     if (!listings) return [];
+    const keywords = searchQuery ? mapIntent(searchQuery) : [];
+    
     return listings.filter((listing) => {
-      const matchesSearch = 
-        listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        listing.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = searchQuery === "" || keywords.some(kw => 
+        listing.title.toLowerCase().includes(kw.toLowerCase()) ||
+        listing.description.toLowerCase().includes(kw.toLowerCase())
+      );
       
       const matchesCategory = 
         selectedCategory === "All" || 
@@ -27,29 +42,6 @@ export default function Home() {
       return matchesSearch && matchesCategory;
     });
   }, [listings, searchQuery, selectedCategory]);
-
-  const [isAiSearching, setIsAiSearching] = useState(false);
-
-  const handleSearch = async (val: string) => {
-    setSearchQuery(val);
-    if (val.length > 10) { // Natural language threshold
-      setIsAiSearching(true);
-      try {
-        const res = await fetch("/api/search/intent", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: val })
-        });
-        const data = await res.json();
-        // Update search logic with keywords/categories from AI
-        console.log("AI Intent:", data);
-      } catch (e) {
-        console.error("AI Search failed");
-      } finally {
-        setIsAiSearching(false);
-      }
-    }
-  };
 
   const recommendations = [
     {
@@ -69,6 +61,26 @@ export default function Home() {
       category: "Electronics",
       condition: "Good",
       images: ["https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSr-Azx7aTbgWgXbTnXLYT82Ob429FCx13wBXyblI9itHyDlm0XxkA_4FRN6YU3Z-5fO_ZB8d6s7E9enA49PD9zVHPCYm-G2OP5sSHBNFOfvBCeS7IMHVFDSfJQs9SEHMf4nn6aPZ0&usqp=CAc"],
+      sellerId: 1,
+      trustBadge: true
+    },
+    {
+      id: 103,
+      title: "Engineering Mechanics Textbook",
+      price: 450,
+      category: "Books",
+      condition: "Used",
+      images: ["https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSaxf39Vc24xRth-dU9PxvtW5UsWWKO36QxVIuMnyGNTWoncTUmHL5szsXCu62-YfypMAcSesOhfKGo6f2HvIRi4gwIcnlEfsXQca_5AH7Jfvfgid5WhnDxY24XK8vMPXvbEvbO37F3fw&usqp=CAc"],
+      sellerId: 1,
+      trustBadge: true
+    },
+    {
+      id: 104,
+      title: "Casio Graphing Calculator",
+      price: 3500,
+      category: "Electronics",
+      condition: "New",
+      images: ["https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTDgp_KNFgnl1MRXbaDfkIIcxX-Coh8Nb7v8WqD55iKlGSiGaCnly_cInrOSiMovMr_mHBJprp29vcBHsuToUy2w63iguOZFEjPhAN7PLkxK4Uw2d14j15d2W8Ezl_ojR6inpeUKerh3k8"],
       sellerId: 1,
       trustBadge: true
     }
@@ -97,7 +109,7 @@ export default function Home() {
             </p>
             
             <div className="max-w-2xl mx-auto relative flex items-center">
-              <Search className={`absolute left-4 w-5 h-5 ${isAiSearching ? "text-primary animate-pulse" : "text-muted-foreground"}`} />
+              <Search className="absolute left-4 w-5 h-5 text-muted-foreground" />
               <Input 
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
@@ -105,14 +117,16 @@ export default function Home() {
                 className="pl-12 pr-12 h-14 rounded-full text-lg shadow-xl shadow-primary/5 border-primary/20 focus-visible:ring-primary/20"
               />
               <div className="absolute right-4 flex items-center gap-2">
-                {isAiSearching && <span className="text-xs font-bold text-primary animate-pulse">✨ AI Thinking</span>}
                 {searchQuery && (
-                  <button 
-                    onClick={() => setSearchQuery("")}
-                    className="p-1 hover:bg-muted rounded-full"
-                  >
-                    <X className="w-5 h-5 text-muted-foreground" />
-                  </button>
+                  <>
+                    <span className="text-xs font-bold text-primary animate-pulse">✨ Smart Search Enabled</span>
+                    <button 
+                      onClick={() => setSearchQuery("")}
+                      className="p-1 hover:bg-muted rounded-full"
+                    >
+                      <X className="w-5 h-5 text-muted-foreground" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -124,7 +138,7 @@ export default function Home() {
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold font-display mb-8 flex items-center gap-2">
-            🔥 Fresh Recommendations <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20">✨ AI Powered</span>
+            🔥 Fresh Recommendations
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {recommendations.map((item) => (

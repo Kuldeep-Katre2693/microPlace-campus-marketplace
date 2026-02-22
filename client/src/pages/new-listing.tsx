@@ -50,26 +50,30 @@ export default function NewListing() {
   }
 
   const handleAnalyze = async () => {
-    if (!formData.title && !formData.images[0]) {
-      toast({ title: "Please provide a title or image first", variant: "destructive" });
-      return;
+    const title = formData.title.toLowerCase();
+    let suggested = { fair_price: 1000, quick_sell_price: 800, category: "General" };
+
+    if (title.includes("camera")) {
+      suggested = { fair_price: 15000, quick_sell_price: 13000, category: "Electronics" };
+    } else if (title.includes("cycle") || title.includes("bicycle")) {
+      suggested = { fair_price: 3000, quick_sell_price: 2500, category: "Bicycles" };
+    } else if (title.includes("book")) {
+      suggested = { fair_price: 500, quick_sell_price: 400, category: "Books" };
     }
-    const result = await analyzeMutation.mutateAsync({
-      title: formData.title,
-      category: formData.category,
-      condition: formData.condition,
-      image: formData.images[0]
-    });
+
     setFormData({
       ...formData,
-      title: result.title,
-      description: result.description,
-      category: result.category,
-      condition: result.condition,
-      price: result.fair_price.toString()
+      category: suggested.category,
+      price: suggested.fair_price.toString()
     });
-    setAnalysis(result);
-    toast({ title: "✨ AI fields updated!" });
+    
+    setAnalysis({
+      fair_price: `₹${suggested.fair_price}`,
+      quick_sell_price: `₹${suggested.quick_sell_price}`,
+      demand_level: "Medium"
+    });
+    
+    toast({ title: "✨ AI Suggested Price" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

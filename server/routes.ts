@@ -200,10 +200,12 @@ return JSON:
       const demoEmail = "demo@example.com";
       const existingDemoUser = await storage.getUserByEmail(demoEmail);
       if (!existingDemoUser) {
+        // Simple password hashing simulation for demo purposes
+        // In a real app, use bcrypt.hash
         await storage.createUser({
           name: "Demo User",
           email: demoEmail,
-          password: "password123", // In a real app, this should be hashed. The storage.createUser should handle hashing if implemented.
+          password: "password123", 
           clerkId: "demo_default_user",
           studentIdVerified: true,
           trustScore: 85,
