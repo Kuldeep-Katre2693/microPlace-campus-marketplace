@@ -3,7 +3,6 @@ import { useListings } from "@/hooks/use-listings";
 import { ListingCard } from "@/components/listing-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
 import { Search, Filter, AlertCircle, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
@@ -13,30 +12,68 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+  const normalize = (text: string) =>
+    text.toLowerCase().replace(/[^\w\s]/gi, "");
+
+  // Detect category from search text
   const handleSearch = (val: string) => {
     setSearchQuery(val);
+
+    const lower = val.toLowerCase();
+
+    const categories = [
+      "academic",
+      "electronics",
+      "stationery",
+      "clothing",
+      "furniture",
+      "bicycles",
+      "hostel essentials"
+    ];
+
+    const detectedCategory = categories.find(cat =>
+      lower.includes(cat)
+    );
+
+    if (detectedCategory) {
+      const formatted =
+        detectedCategory === "hostel essentials"
+          ? "Hostel Essentials"
+          : detectedCategory.charAt(0).toUpperCase() +
+            detectedCategory.slice(1);
+
+      setSelectedCategory(formatted);
+    } else {
+      setSelectedCategory("All");
+    }
   };
 
+  // Smart keyword splitting
   const mapIntent = (query: string) => {
     const q = query.toLowerCase();
-    if (q.includes("photoshoot")) return ["camera", "tripod", "lighting"];
-    if (q.includes("exam")) return ["calculator", "books"];
-    if (q.includes("hostel")) return ["kettle", "table", "chair"];
-    return [query];
+    return q.split(" ").filter(word => word.length > 2);
   };
 
   const filteredListings = useMemo(() => {
     if (!listings) return [];
+
     const keywords = searchQuery ? mapIntent(searchQuery) : [];
-    
+
     return listings.filter((listing) => {
-      const matchesSearch = searchQuery === "" || keywords.some(kw => 
-        listing.title.toLowerCase().includes(kw.toLowerCase()) ||
-        listing.description.toLowerCase().includes(kw.toLowerCase())
-      );
-      
-      const matchesCategory = 
-        selectedCategory === "All" || 
+      const title = normalize(listing.title || "");
+      const description = normalize(listing.description || "");
+      const category = normalize(listing.category || "");
+
+      const matchesSearch =
+        searchQuery === "" ||
+        keywords.some((kw) =>
+          title.includes(kw) ||
+          description.includes(kw) ||
+          category.includes(kw)
+        );
+
+      const matchesCategory =
+        selectedCategory === "All" ||
         listing.category === selectedCategory;
 
       return matchesSearch && matchesCategory;
@@ -48,7 +85,7 @@ export default function Home() {
       id: 101,
       title: "Deep Learning Specialization Books",
       price: 2500,
-      category: "Books",
+      category: "Stationery",
       condition: "Like New",
       images: ["https://info.deeplearning.ai/hubfs/1645724689.png"],
       sellerId: 1,
@@ -63,130 +100,106 @@ export default function Home() {
       images: ["https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSr-Azx7aTbgWgXbTnXLYT82Ob429FCx13wBXyblI9itHyDlm0XxkA_4FRN6YU3Z-5fO_ZB8d6s7E9enA49PD9zVHPCYm-G2OP5sSHBNFOfvBCeS7IMHVFDSfJQs9SEHMf4nn6aPZ0&usqp=CAc"],
       sellerId: 1,
       trustBadge: true
-    },
-    {
-      id: 103,
-      title: "Camera",
-      price: 450,
-      category: "Books",
-      condition: "Used",
-      images: ["https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSaxf39Vc24xRth-dU9PxvtW5UsWWKO36QxVIuMnyGNTWoncTUmHL5szsXCu62-YfypMAcSesOhfKGo6f2HvIRi4gwIcnlEfsXQca_5AH7Jfvfgid5WhnDxY24XK8vMPXvbEvbO37F3fw&usqp=CAc"],
-      sellerId: 1,
-      trustBadge: true
-    },
-    {
-      id: 104,
-      title: "Casio Graphing Calculator",
-      price: 3500,
-      category: "Electronics",
-      condition: "New",
-      images: ["https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTDgp_KNFgnl1MRXbaDfkIIcxX-Coh8Nb7v8WqD55iKlGSiGaCnly_cInrOSiMovMr_mHBJprp29vcBHsuToUy2w63iguOZFEjPhAN7PLkxK4Uw2d14j15d2W8Ezl_ojR6inpeUKerh3k8"],
-      sellerId: 1,
-      trustBadge: true
     }
   ];
 
+  const filteredRecommendations =
+    selectedCategory === "All"
+      ? recommendations
+      : recommendations.filter(
+          (item) => item.category === selectedCategory
+        );
+
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-b from-secondary/50 to-background">
-        <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
-        
+
+      {/* Hero */}
+      <section className="py-20 bg-gradient-to-b from-secondary/50 to-background">
         <div className="container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="font-display font-extrabold text-4xl md:text-6xl tracking-tight mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Buy & Sell on Campus.
-              <br />
-              Safe. Simple. Student-Verified.
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              MicroPlace is the exclusive marketplace for Priyadarshini College.
-              Find textbooks, electronics, and gear from verified students.
-            </p>
-            
+
             <div className="max-w-2xl mx-auto relative flex items-center">
               <Search className="absolute left-4 w-5 h-5 text-muted-foreground" />
-              <Input 
+              <Input
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Try: 'I have photoshoot tomorrow' or 'Engineering mechanics'" 
-                className="pl-12 pr-12 h-14 rounded-full text-lg shadow-xl shadow-primary/5 border-primary/20 focus-visible:ring-primary/20"
+                placeholder="Try: 'i have ml stationery book'"
+                className="pl-12 pr-12 h-14 rounded-full text-lg"
               />
-              <div className="absolute right-4 flex items-center gap-2">
-                {searchQuery && (
-                  <>
-                    <span className="text-xs font-bold text-primary animate-pulse">✨ Smart Search Enabled</span>
-                    <button 
-                      onClick={() => setSearchQuery("")}
-                      className="p-1 hover:bg-muted rounded-full"
-                    >
-                      <X className="w-5 h-5 text-muted-foreground" />
-                    </button>
-                  </>
-                )}
-              </div>
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("All");
+                  }}
+                  className="absolute right-4"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              )}
             </div>
           </motion.div>
         </div>
       </section>
 
+      {/* Filters */}
+      <section className="py-8 border-b">
+        <div className="container mx-auto px-4 flex flex-wrap gap-4 justify-center">
+          {[
+            "All",
+            "Academic",
+            "Electronics",
+            "Stationery",
+            "Clothing",
+            "Furniture",
+            "Bicycles",
+            "Hostel Essentials"
+          ].map((cat) => (
+            <Button
+              key={cat}
+              variant={selectedCategory === cat ? "default" : "outline"}
+              onClick={() => setSelectedCategory(cat)}
+              className="rounded-full"
+            >
+              {cat}
+            </Button>
+          ))}
+          <Button variant="ghost" className="rounded-full gap-2">
+            <Filter className="w-4 h-4" /> Filters
+          </Button>
+        </div>
+      </section>
+
       {/* Fresh Recommendations */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-12 bg-muted/30">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold font-display mb-8 flex items-center gap-2">
+          <h2 className="text-2xl font-bold mb-6">
             🔥 Fresh Recommendations
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {recommendations.map((item) => (
+            {filteredRecommendations.map((item) => (
               <ListingCard key={item.id} listing={item as any} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Categories */}
-      <section className="py-12 border-b">
+      {/* Listings */}
+      <section className="py-12">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap gap-4 justify-center">
-            {["All", "Academic", "Electronics", "Stationery", "Clothing", "Furniture", "Bicycles", "Hostel Essentials"].map((cat) => (
-              <Button 
-                key={cat} 
-                variant={selectedCategory === cat ? "default" : "outline"}
-                onClick={() => setSelectedCategory(cat)}
-                className="rounded-full transition-all"
-              >
-                {cat}
-              </Button>
-            ))}
-            <Button variant="ghost" className="rounded-full gap-2">
-              <Filter className="w-4 h-4" /> Filters
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Listings Grid */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold font-display">
-              {searchQuery || selectedCategory !== "All" ? "Search Results" : "Fresh Recommendations"}
-            </h2>
-            <Link href="/listings/new">
-              <Button variant="link" className="text-primary">List an Item &rarr;</Button>
-            </Link>
-          </div>
+          <h2 className="text-2xl font-bold mb-6">
+            {searchQuery
+              ? `Results for "${searchQuery}"`
+              : selectedCategory !== "All"
+              ? `${selectedCategory} Listings`
+              : "All Listings"}
+          </h2>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-[400px] rounded-2xl bg-muted animate-pulse" />
-              ))}
-            </div>
+            <div className="text-center py-20">Loading...</div>
           ) : filteredListings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {filteredListings.map((listing) => (
@@ -194,23 +207,14 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-muted/20 rounded-3xl">
-              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">No listings found</h3>
-              <p className="text-muted-foreground mb-6">Try adjusting your search or category filters.</p>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("All");
-                }}
-              >
-                Reset Filters
-              </Button>
+            <div className="text-center py-20">
+              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p>No listings found</p>
             </div>
           )}
         </div>
       </section>
+
     </Layout>
   );
 }
