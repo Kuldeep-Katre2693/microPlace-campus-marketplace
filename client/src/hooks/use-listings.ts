@@ -4,46 +4,6 @@ import { InsertListing, Listing } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
-// Mock data for listing response
-const MOCK_LISTINGS: Listing[] = [
-  {
-    id: 1,
-    sellerId: 2,
-    title: "Engineering Mechanics Textbook (1st Year)",
-    description: "Standard mechanics textbook, barely used. No highlighting.",
-    price: 450,
-    category: "Books",
-    condition: "Like New",
-    images: ["https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=1000"],
-    status: "active",
-    createdAt: new Date("2024-02-20"),
-  },
-  {
-    id: 2,
-    sellerId: 3,
-    title: "Scientific Calculator fx-991EX",
-    description: "Classwiz series, essential for engineering exams. Includes cover.",
-    price: 800,
-    category: "Electronics",
-    condition: "Good",
-    images: ["https://images.unsplash.com/photo-1587145820266-a2651c463853?auto=format&fit=crop&q=80&w=1000"],
-    status: "active",
-    createdAt: new Date("2024-02-21"),
-  },
-  {
-    id: 3,
-    sellerId: 4,
-    title: "Drafter + Drawing Board Combo",
-    description: "Full set for engineering drawing. Mini drafter acts smooth.",
-    price: 1200,
-    category: "Stationery",
-    condition: "Fair",
-    images: ["https://images.unsplash.com/photo-1588619461336-68f5d9f430b8?auto=format&fit=crop&q=80&w=1000"],
-    status: "active",
-    createdAt: new Date("2024-02-19"),
-  }
-];
-
 export function useListings() {
   return useQuery({
     queryKey: [api.listings.list.path],
