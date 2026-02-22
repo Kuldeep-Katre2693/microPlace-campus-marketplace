@@ -3,6 +3,7 @@ import { useListings } from "@/hooks/use-listings";
 import { ListingCard } from "@/components/listing-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import { Search, Filter, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 

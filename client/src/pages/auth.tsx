@@ -2,25 +2,29 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { GraduationCap, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { Loader2, GraduationCap, ArrowRight } from "lucide-react";
 
 export default function AuthPage() {
+  const { login, register, isLoading } = useAuth();
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
-  const { login, isLoading } = useAuth();
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      await login(email);
+    if (isLogin) {
+      await login({ email, password });
+    } else {
+      await register({ name, email, password });
     }
   };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      {/* Left Panel - Visuals */}
       <div className="hidden lg:flex flex-col justify-center items-center bg-primary p-12 text-primary-foreground relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop')] opacity-10 bg-cover bg-center" />
         <div className="relative z-10 max-w-lg text-center">
@@ -34,56 +38,74 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* Right Panel - Login Form */}
       <div className="flex items-center justify-center p-8 bg-background">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
           <Card className="border-none shadow-2xl shadow-primary/5">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-3xl font-display font-bold">Student Login</CardTitle>
-              <CardDescription>
-                Enter your college email to access the marketplace
+            <CardHeader className="text-center pb-8">
+              <CardTitle className="font-display text-2xl mb-2">MicroPlace Campus</CardTitle>
+              <CardDescription className="text-base">
+                {isLogin ? "Sign in to your account" : "Create a new student account"}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input 
+                      id="name" 
+                      placeholder="Aditya Sharma" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required 
+                    />
+                  </div>
+                )}
+                
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">College Email</Label>
                   <Input 
                     id="email" 
                     type="email" 
-                    placeholder="student@priyadarshini.edu"
+                    placeholder="student@priyadarshini.edu" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="h-12"
+                    required 
                   />
-                  <p className="text-xs text-muted-foreground">
-                    * Must use a valid .edu domain
-                  </p>
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-lg font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  ) : (
-                    <>
-                      Continue <ArrowRight className="w-5 h-5 ml-2" />
-                    </>
-                  )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required 
+                    minLength={6}
+                  />
+                </div>
+
+                <Button type="submit" className="w-full h-11 text-lg mt-6" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : (isLogin ? "Sign In" : "Create Account")}
                 </Button>
               </form>
             </CardContent>
-            <CardFooter className="flex justify-center border-t p-6">
-              <p className="text-xs text-muted-foreground">
-                By continuing, you agree to our Terms of Service and Campus Code of Conduct.
+            <CardFooter className="flex justify-center border-t p-4 bg-muted/10">
+              <p className="text-sm text-muted-foreground">
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                <button 
+                  type="button" 
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {isLogin ? "Sign up" : "Sign in"}
+                </button>
               </p>
             </CardFooter>
           </Card>

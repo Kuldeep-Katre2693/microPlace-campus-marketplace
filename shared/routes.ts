@@ -9,16 +9,29 @@ export const errorSchemas = {
 
 export const api = {
   auth: {
-    sync: {
+    login: {
       method: 'POST' as const,
-      path: '/api/auth/sync' as const,
+      path: '/api/auth/login' as const,
       input: z.object({
-        clerkId: z.string(),
-        name: z.string(),
-        email: z.string(),
+        email: z.string().email(),
+        password: z.string().min(6),
       }),
       responses: {
         200: z.custom<typeof users.$inferSelect>(),
+        401: errorSchemas.validation,
+      }
+    },
+    register: {
+      method: 'POST' as const,
+      path: '/api/auth/register' as const,
+      input: z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        password: z.string().min(6),
+      }),
+      responses: {
+        201: z.custom<typeof users.$inferSelect>(),
+        400: errorSchemas.validation,
       }
     },
     verifyId: {

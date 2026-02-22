@@ -9,7 +9,7 @@ import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
-  getUserByClerkId(clerkId: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
   
@@ -27,8 +27,8 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
   
-  async getUserByClerkId(clerkId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId));
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
   
@@ -59,7 +59,7 @@ export class DatabaseStorage implements IStorage {
   async createOrder(insertOrder: InsertOrder): Promise<Order> {
     const [order] = await db.insert(orders).values({
       ...insertOrder,
-      commissionAmount: Math.floor(insertOrder.amount * 0.05) // 5% commission
+      commissionAmount: Math.floor(insertOrder.amount * 0.05)
     }).returning();
     return order;
   }

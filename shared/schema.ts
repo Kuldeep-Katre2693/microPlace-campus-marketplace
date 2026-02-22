@@ -4,9 +4,10 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  clerkId: text("clerk_id").notNull().unique(), // We'll mock Clerk auth for the hackathon MVP
+  clerkId: text("clerk_id").notNull().unique(), // kept for compatibility if needed
   name: text("name").notNull(),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
   studentId: text("student_id"),
   studentIdVerified: boolean("student_id_verified").default(false),
   trustScore: integer("trust_score").default(50),
@@ -24,7 +25,7 @@ export const listings = pgTable("listings", {
   category: text("category").notNull(),
   condition: text("condition").notNull(),
   images: text("images").array().notNull(),
-  status: text("status").default("active"), // active, sold, deleted
+  status: text("status").default("active"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -35,19 +36,17 @@ export const orders = pgTable("orders", {
   sellerId: integer("seller_id").notNull(),
   amount: integer("amount").notNull(),
   commissionAmount: integer("commission_amount").notNull(),
-  status: text("status").default("created"), // created, paid, hold, released, cancelled
+  status: text("status").default("created"),
   razorpayOrderId: text("razorpay_order_id"),
   razorpayPaymentId: text("razorpay_payment_id"),
   meetingZone: text("meeting_zone").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Zod schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, trustScore: true, totalTransactions: true, rating: true, createdAt: true });
 export const insertListingSchema = createInsertSchema(listings).omit({ id: true, status: true, createdAt: true });
 export const insertOrderSchema = createInsertSchema(orders).omit({ id: true, status: true, razorpayOrderId: true, razorpayPaymentId: true, commissionAmount: true, createdAt: true });
 
-// Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Listing = typeof listings.$inferSelect;

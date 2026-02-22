@@ -8,18 +8,13 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Mock AI and Razorpay functionality for the hackathon MVP
   
-  app.post(api.auth.sync.path, async (req, res) => {
+  app.post(api.auth.login.path, async (req, res) => {
     try {
-      const input = api.auth.sync.input.parse(req.body);
-      let user = await storage.getUserByClerkId(input.clerkId);
-      if (!user) {
-        user = await storage.createUser({
-          clerkId: input.clerkId,
-          name: input.name,
-          email: input.email,
-        });
+      const input = api.auth.login.input.parse(req.body);
+      const user = await storage.getUserByEmail(input.email);
+      if (!user || user.password !== input.password) {
+        return res.status(401).json({ message: "Invalid email or password" });
       }
       res.status(200).json(user);
     } catch (err) {
@@ -27,11 +22,32 @@ export async function registerRoutes(
     }
   });
 
+  app.post(api.auth.register.path, async (req, res) => {
+    try {
+      const input = api.auth.register.input.parse(req.body);
+      const existing = await storage.getUserByEmail(input.email);
+      if (existing) {
+        return res.status(400).json({ message: "Email already registered" });
+      }
+      const user = await storage.createUser({
+        clerkId: "local_" + Date.now(),
+        name: input.name,
+        email: input.email,
+        password: input.password,
+      });
+      res.status(201).json(user);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(400).json({ message: "Invalid input" });
+    }
+  });
+
   app.post(api.auth.verifyId.path, async (req, res) => {
     try {
       const input = api.auth.verifyId.input.parse(req.body);
-      // Mock AI OCR verification
-      await storage.updateUser(input.userId, { studentIdVerified: true, trustScore: 60 });
+      const updated = await storage.updateUser(input.userId, { studentIdVerified: true, trustScore: 60 });
       res.status(200).json({ success: true, studentId: "PC-2025-12345", message: "ID verified successfully" });
     } catch (err) {
       res.status(400).json({ message: "Invalid input" });
@@ -58,7 +74,6 @@ export async function registerRoutes(
 
   app.post(api.listings.analyzePrice.path, async (req, res) => {
     try {
-      // Mock OpenAI price suggestion
       res.status(200).json({
         fair_price: "₹1,200",
         quick_sell_price: "₹950",
@@ -73,7 +88,6 @@ export async function registerRoutes(
 
   app.post(api.listings.checkScam.path, async (req, res) => {
     try {
-      // Mock OpenAI scam detection
       res.status(200).json({
         risk_level: "Low",
         scam_probability: "5%",
@@ -118,11 +132,11 @@ export async function registerRoutes(
     try {
       const listings = await storage.getListings();
       if (listings.length === 0) {
-        // Create dummy user
         const seller = await storage.createUser({
           clerkId: "mock_clerk_123",
           name: "Test User",
           email: "test@priyadarshini.edu",
+          password: "password123",
         });
         
         await storage.createListing({
