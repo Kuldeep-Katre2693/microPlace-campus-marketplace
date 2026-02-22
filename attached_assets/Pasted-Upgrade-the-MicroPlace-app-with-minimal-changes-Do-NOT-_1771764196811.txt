@@ -1,0 +1,98 @@
+Upgrade the MicroPlace app with minimal changes.
+Do NOT refactor the entire project.
+Keep implementation simple and stable.
+
+--------------------------------------------------
+1️⃣ ADD IMAGE UPLOAD IN SELL ITEM SECTION
+--------------------------------------------------
+
+In the Sell Item form:
+
+1. Add an "Upload Image" button.
+2. Allow user to upload image file.
+3. Show preview of uploaded image.
+
+Do NOT store image in database.
+Store temporarily in frontend state only.
+
+--------------------------------------------------
+2️⃣ AUTO-FILL ITEM INFO (SIMULATED ML FEATURE)
+--------------------------------------------------
+
+After image upload, automatically fill form fields with:
+
+Title: "Machine Learning Notes - Complete Semester Guide"
+Category: "Books"
+Condition: "Good"
+Description:
+"Comprehensive handwritten and printed Machine Learning notes covering:
+- Supervised Learning
+- Unsupervised Learning
+- Neural Networks
+- Deep Learning basics
+Perfect for semester exams and quick revision."
+
+Fair Price: 499
+Quick Sell Price: 399
+
+Display badge:
+✨ AI Auto-Filled Details
+
+This should happen regardless of what image is uploaded.
+
+No OpenAI integration.
+Use simple JavaScript function like:
+
+function autofillMLNotes() {
+  setTitle(...)
+  setCategory(...)
+  setDescription(...)
+  setPrice(...)
+}
+
+Call this function after image upload.
+
+--------------------------------------------------
+3️⃣ ADD RAZORPAY PAYMENT TEMPLATE
+--------------------------------------------------
+
+Create a simple Razorpay integration template.
+
+Backend:
+- Create route POST /api/create-order
+- Use Razorpay SDK
+- Create order with amount passed
+- Return order_id
+
+Frontend:
+- On Buy Now click:
+   - Call /api/create-order
+   - Open Razorpay Checkout modal
+   - On success show:
+     "Payment Successful"
+
+Use environment variables:
+RAZORPAY_KEY_ID
+RAZORPAY_KEY_SECRET
+
+Do NOT implement escrow.
+Keep it simple.
+
+--------------------------------------------------
+4️⃣ IMPORTANT RULES
+--------------------------------------------------
+
+- Do NOT change database schema.
+- Do NOT rewrite authentication.
+- Keep modifications limited to:
+   - Sell Item component
+   - Payment route
+- Keep UI clean.
+- Do not add OpenAI.
+- Ensure app does not crash if image is large.
+
+Return:
+- Updated SellItem component
+- Razorpay backend route
+- Razorpay frontend checkout code
+- Short explanation of changes

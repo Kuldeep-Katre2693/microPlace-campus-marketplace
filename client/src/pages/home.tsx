@@ -66,7 +66,7 @@ export default function Home() {
     },
     {
       id: 103,
-      title: "Engineering Mechanics Textbook",
+      title: "Camera",
       price: 450,
       category: "Books",
       condition: "Used",
