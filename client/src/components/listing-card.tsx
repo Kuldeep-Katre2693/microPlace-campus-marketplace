@@ -10,13 +10,14 @@ import { formatDistanceToNow } from "date-fns";
 export function ListingCard({ listing }: { listing: Listing }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.3 }}
+      initial={{ opacity: 0, y: 20, rotateX: 8 }}
+      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+      whileHover={{ y: -8, rotateX: 2, scale: 1.02 }}
+      whileTap={{ scale: 0.96 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
     >
       <Link href={`/listings/${listing.id}`}>
-        <Card className="overflow-hidden h-full border hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer group bg-card">
+        <Card className="overflow-hidden h-full border border-transparent hover:border-primary/50 hover:shadow-2xl transition-all cursor-pointer group bg-card/80 backdrop-blur-sm">
           <div className="aspect-[4/3] overflow-hidden relative">
             <img 
               src={listing.images[0] || "https://via.placeholder.com/300"} 
@@ -50,6 +51,20 @@ export function ListingCard({ listing }: { listing: Listing }) {
                 {listing.createdAt ? formatDistanceToNow(new Date(listing.createdAt), { addSuffix: true }) : 'Recently'}
               </span>
             </div>
+
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <Badge variant="secondary" className="text-[10px] uppercase tracking-wider text-white bg-gradient-to-r from-primary to-secondary">
+                {listing.condition || 'N/A'}
+              </Badge>
+              {listing.sellerId === 1 ? (
+                <div className="text-[10px] font-semibold text-emerald-500 flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" /> Trusted Seller
+                </div>
+              ) : (
+                <div className="text-[10px] font-medium text-muted-foreground">Verified marketplace member</div>
+              )}
+            </div>
+
             <h3 className="font-display font-bold text-lg leading-tight mb-2 line-clamp-1 group-hover:text-primary transition-colors">
               {listing.title}
             </h3>

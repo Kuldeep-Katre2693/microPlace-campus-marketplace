@@ -114,12 +114,15 @@ export default function Home() {
     <Layout>
 
       {/* Hero */}
-      <section className="py-20 bg-gradient-to-b from-secondary/50 to-background">
+      <section className="py-20 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.18),_transparent_55%),_linear-gradient(to_bottom,_rgba(255,255,255,0.8),_rgba(238,246,255,0.75))]">
         <div className="container mx-auto px-4 text-center">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="text-4xl md:text-6xl font-bold mb-3 leading-tight">
               Buy & Sell on Campus.
             </h1>
+            <p className="max-w-2xl mx-auto text-muted-foreground text-base md:text-xl mb-8">
+              Discover curated deals with verified sellers, lightning-fast listing creation, and secure pickup zones in your college.
+            </p>
 
             <div className="max-w-2xl mx-auto relative flex items-center">
               <Search className="absolute left-4 w-5 h-5 text-muted-foreground" />
@@ -140,6 +143,20 @@ export default function Home() {
                   <X className="w-5 h-5 text-muted-foreground" />
                 </button>
               )}
+            </div>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              {[
+                { label: '250+ listings', value: 'Live now', icon: '📦' },
+                { label: 'Safe meetup zones', value: 'Verified locations', icon: '📍' },
+                { label: '30s listing', value: 'Upload in seconds', icon: '⚡' },
+              ].map((stat) => (
+                <div key={stat.label} className="text-left rounded-2xl border border-white/50 bg-white/70 p-4 shadow-sm backdrop-blur-sm">
+                  <div className="text-2xl leading-none mb-1">{stat.icon}</div>
+                  <div className="text-sm font-semibold">{stat.label}</div>
+                  <div className="text-xs text-muted-foreground">{stat.value}</div>
+                </div>
+              ))}
             </div>
           </motion.div>
         </div>
