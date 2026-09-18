@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   clerk_id TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  password TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
   student_id TEXT,
   student_id_verified BOOLEAN DEFAULT false,
   trust_score INTEGER DEFAULT 50,
@@ -76,3 +76,13 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 
 CREATE INDEX IF NOT EXISTS messages_conversation_id_idx ON messages(conversation_id);
+
+-- Express Session table for connect-pg-simple
+CREATE TABLE IF NOT EXISTS "session" (
+  "sid" varchar NOT NULL COLLATE "default",
+  "sess" json NOT NULL,
+  "expire" timestamp(6) NOT NULL,
+  CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE
+) WITH (OIDS=FALSE);
+
+CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");

@@ -15,9 +15,9 @@ export interface IStorage {
   
   getListings(): Promise<Listing[]>;
   getListing(id: number): Promise<Listing | undefined>;
-  createListing(listing: InsertListing): Promise<Listing>;
+  createListing(listing: InsertListing & { sellerId: number }): Promise<Listing>;
   
-  createOrder(order: InsertOrder): Promise<Order>;
+  createOrder(order: InsertOrder & { buyerId: number; sellerId: number; amount: number }): Promise<Order>;
   updateOrder(id: number, updates: Partial<Order>): Promise<Order>;
 }
 
@@ -28,14 +28,16 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    const normalized = email.trim().toLowerCase();
+    const [user] = await db.select().from(users).where(eq(users.email, normalized));
     return user;
   }
   
   async createUser(insertUser: InsertUser): Promise<User> {
-    const { studentIdImage, ...userData } = insertUser;
+    const { studentIdImage: _img, ...userData } = insertUser;
     const [user] = await db.insert(users).values({
       ...userData,
+      email: userData.email.trim().toLowerCase(),
       clerkId: userData.clerkId || `local_${Date.now()}`,
       studentIdVerified: userData.studentIdVerified ?? false,
       trustScore: 50,
@@ -60,7 +62,7 @@ export class DatabaseStorage implements IStorage {
     return listing;
   }
 
-  async createListing(insertListing: InsertListing): Promise<Listing> {
+  async createListing(insertListing: InsertListing & { sellerId: number }): Promise<Listing> {
     const [listing] = await db.insert(listings).values({
       ...insertListing,
       status: "active",
@@ -68,7 +70,7 @@ export class DatabaseStorage implements IStorage {
     return listing;
   }
 
-  async createOrder(insertOrder: InsertOrder): Promise<Order> {
+  async createOrder(insertOrder: InsertOrder & { buyerId: number; sellerId: number; amount: number }): Promise<Order> {
     const [order] = await db.insert(orders).values({
       ...insertOrder,
       status: "created",
@@ -97,19 +99,19 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const normalized = email.toLowerCase();
+    const normalized = email.trim().toLowerCase();
     return Array.from(this.users.values()).find((u) => u.email.toLowerCase() === normalized);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const { studentIdImage, ...userData } = insertUser;
+    const { studentIdImage: _img, ...userData } = insertUser;
     const user: User = {
       id,
       clerkId: userData.clerkId || `local_${Date.now()}`,
       name: userData.name,
-      email: userData.email,
-      password: userData.password,
+      email: userData.email.trim().toLowerCase(),
+      passwordHash: userData.passwordHash,
       studentId: userData.studentId || null,
       studentIdVerified: userData.studentIdVerified ?? false,
       trustScore: 50,
@@ -137,7 +139,7 @@ export class MemStorage implements IStorage {
     return this.listings.get(id);
   }
 
-  async createListing(insertListing: InsertListing): Promise<Listing> {
+  async createListing(insertListing: InsertListing & { sellerId: number }): Promise<Listing> {
     const id = this.currentListingId++;
     const listing: Listing = {
       id,
@@ -160,7 +162,7 @@ export class MemStorage implements IStorage {
     return listing;
   }
 
-  async createOrder(insertOrder: InsertOrder): Promise<Order> {
+  async createOrder(insertOrder: InsertOrder & { buyerId: number; sellerId: number; amount: number }): Promise<Order> {
     const id = this.currentOrderId++;
     const order: Order = {
       id,

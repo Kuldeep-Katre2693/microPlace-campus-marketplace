@@ -1,8 +1,17 @@
 import { z } from 'zod';
-import { insertUserSchema, insertListingSchema, insertOrderSchema, users, listings, orders } from './schema';
+import {
+  registerUserSchema,
+  loginUserSchema,
+  insertListingSchema,
+  insertOrderSchema,
+  type PublicUser,
+  type Listing,
+  type Order
+} from './schema';
 
 export const errorSchemas = {
   validation: z.object({ message: z.string(), field: z.string().optional() }),
+  unauthorized: z.object({ message: z.string() }),
   notFound: z.object({ message: z.string() }),
   internal: z.object({ message: z.string() }),
 };
@@ -12,37 +21,45 @@ export const api = {
     login: {
       method: 'POST' as const,
       path: '/api/auth/login' as const,
-      input: z.object({
-        email: z.string().email(),
-        password: z.string().min(6),
-      }),
+      input: loginUserSchema,
       responses: {
-        200: z.custom<typeof users.$inferSelect>(),
-        401: errorSchemas.validation,
+        200: z.custom<PublicUser>(),
+        401: errorSchemas.unauthorized,
       }
     },
     register: {
       method: 'POST' as const,
       path: '/api/auth/register' as const,
-      input: z.object({
-        name: z.string().min(2),
-        email: z.string().email(),
-        password: z.string().min(6),
-      }),
+      input: registerUserSchema,
       responses: {
-        201: z.custom<typeof users.$inferSelect>(),
+        201: z.custom<PublicUser>(),
         400: errorSchemas.validation,
+      }
+    },
+    logout: {
+      method: 'POST' as const,
+      path: '/api/auth/logout' as const,
+      responses: {
+        200: z.object({ message: z.string() }),
+      }
+    },
+    me: {
+      method: 'GET' as const,
+      path: '/api/auth/me' as const,
+      responses: {
+        200: z.custom<PublicUser>(),
+        401: errorSchemas.unauthorized,
       }
     },
     verifyId: {
       method: 'POST' as const,
       path: '/api/auth/verify-id' as const,
       input: z.object({
-        userId: z.number(),
-        idImageUrl: z.string()
+        idImageUrl: z.string().optional()
       }),
       responses: {
         200: z.object({ success: z.boolean(), studentId: z.string().optional(), message: z.string() }),
+        401: errorSchemas.unauthorized,
       }
     }
   },
@@ -51,7 +68,7 @@ export const api = {
       method: 'GET' as const,
       path: '/api/listings' as const,
       responses: {
-        200: z.array(z.custom<typeof listings.$inferSelect>()),
+        200: z.array(z.custom<Listing>()),
       }
     },
     create: {
@@ -59,8 +76,9 @@ export const api = {
       path: '/api/listings' as const,
       input: insertListingSchema,
       responses: {
-        201: z.custom<typeof listings.$inferSelect>(),
+        201: z.custom<Listing>(),
         400: errorSchemas.validation,
+        401: errorSchemas.unauthorized,
       }
     },
     analyzePrice: {
@@ -75,7 +93,7 @@ export const api = {
         200: z.object({
           fair_price: z.string(),
           quick_sell_price: z.string(),
-          premium_price: z.string(),
+          premium_price: z.string().optional(),
           demand_level: z.string(),
           confidence_score: z.string()
         })
@@ -104,8 +122,9 @@ export const api = {
       path: '/api/orders' as const,
       input: insertOrderSchema,
       responses: {
-        201: z.custom<typeof orders.$inferSelect>(),
+        201: z.custom<Order>(),
         400: errorSchemas.validation,
+        401: errorSchemas.unauthorized,
       }
     },
     verifyPayment: {
@@ -118,6 +137,7 @@ export const api = {
       }),
       responses: {
         200: z.object({ success: z.boolean() }),
+        401: errorSchemas.unauthorized,
       }
     }
   },
@@ -126,7 +146,8 @@ export const api = {
       method: 'GET' as const,
       path: '/api/users/:id' as const,
       responses: {
-        200: z.custom<typeof users.$inferSelect>(),
+        200: z.custom<PublicUser>(),
+        400: errorSchemas.validation,
         404: errorSchemas.notFound,
       }
     }

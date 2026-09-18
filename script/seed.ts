@@ -1,7 +1,8 @@
 import { storage } from "../server/storage";
+import { hashPassword } from "../server/auth";
 
 export async function seedDatabase() {
-  console.log("Starting database seeding...");
+  console.log("Starting database seeding with Argon2 hashed credentials...");
 
   try {
     // Default Demo User
@@ -11,7 +12,7 @@ export async function seedDatabase() {
       demoUser = await storage.createUser({
         name: "Demo User",
         email: demoEmail,
-        password: "password123",
+        passwordHash: await hashPassword("password123"),
         clerkId: "demo_default_user",
         studentIdVerified: true,
       });
@@ -23,7 +24,7 @@ export async function seedDatabase() {
       user1 = await storage.createUser({
         name: "Himanshu Bokde",
         email: "bokdesaurabh802@gmail.com",
-        password: "password123456",
+        passwordHash: await hashPassword("password123456"),
         clerkId: "demo_user_1",
         studentIdVerified: true,
       });
@@ -35,7 +36,7 @@ export async function seedDatabase() {
       user2 = await storage.createUser({
         name: "Divyani More",
         email: "divyanimore1234@gmail.com",
-        password: "password112233",
+        passwordHash: await hashPassword("password112233"),
         clerkId: "demo_user_2",
         studentIdVerified: true,
       });

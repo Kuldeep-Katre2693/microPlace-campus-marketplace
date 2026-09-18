@@ -1,104 +1,144 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useLocation } from "wouter";
-import { User } from "@shared/schema";
+import { PublicUser } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@shared/routes";
 
 interface AuthContextType {
-  user: User | null;
+  user: PublicUser | null;
   isLoading: boolean;
-  login: (data: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
-  logout: () => void;
-  verifyStudentId: () => void;
+  login: (data: { email: string; password: string }) => Promise<void>;
+  register: (data: { name: string; email: string; password: string; studentIdImage?: string | null }) => Promise<void>;
+  logout: () => Promise<void>;
+  verifyStudentId: () => Promise<void>;
+  refetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<PublicUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("microplace_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  const refetchUser = useCallback(async () => {
+    try {
+      const res = await fetch(api.auth.me.path, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const userData: PublicUser = await res.json();
+        setUser(userData);
+      } else {
+        setUser(null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch current user session:", err);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  const login = async (data: any) => {
+  useEffect(() => {
+    refetchUser();
+  }, [refetchUser]);
+
+  const login = async (data: { email: string; password: string }) => {
     setIsLoading(true);
     try {
       const res = await fetch(api.auth.login.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to login");
+        const error = await res.json().catch(() => ({ message: "Failed to login" }));
+        throw new Error(error.message || "Invalid credentials");
       }
 
-      const user = await res.json();
-      setUser(user);
-      localStorage.setItem("microplace_user", JSON.stringify(user));
-      toast({ title: "Welcome back!", description: `Logged in as ${user.name}` });
+      const loggedInUser: PublicUser = await res.json();
+      setUser(loggedInUser);
+      toast({ title: "Welcome back!", description: `Logged in as ${loggedInUser.name}` });
       setLocation("/");
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Login Failed", description: error.message || "Invalid credentials", variant: "destructive" });
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (data: any) => {
+  const register = async (data: { name: string; email: string; password: string; studentIdImage?: string | null }) => {
     setIsLoading(true);
     try {
       const res = await fetch(api.auth.register.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to register");
+        const error = await res.json().catch(() => ({ message: "Failed to register" }));
+        throw new Error(error.message || "Registration failed");
       }
 
-      const user = await res.json();
-      setUser(user);
-      localStorage.setItem("microplace_user", JSON.stringify(user));
-      toast({ title: "Welcome!", description: `Account created successfully.` });
+      const registeredUser: PublicUser = await res.json();
+      setUser(registeredUser);
+      toast({ title: "Welcome!", description: "Account created successfully." });
       setLocation("/");
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Registration Failed", description: error.message || "Please check your inputs", variant: "destructive" });
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("microplace_user");
-    setLocation("/auth");
-    toast({ title: "Logged out", description: "See you soon!" });
+  const logout = async () => {
+    try {
+      await fetch(api.auth.logout.path, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      setUser(null);
+      setLocation("/auth");
+      toast({ title: "Logged out", description: "See you soon!" });
+    }
   };
 
-  const verifyStudentId = () => {
-    if (user) {
-      const updatedUser = { ...user, studentIdVerified: true, trustScore: Math.max(user.trustScore || 50, 60) + 35 };
-      setUser(updatedUser);
-      localStorage.setItem("microplace_user", JSON.stringify(updatedUser));
-      toast({ title: "ID Verified!", description: "Your trust score has increased." });
+  const verifyStudentId = async () => {
+    try {
+      const res = await fetch(api.auth.verifyId.path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({}),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: "Verification failed" }));
+        throw new Error(err.message || "Verification failed");
+      }
+
+      setUser((prev) => (prev ? { ...prev, studentIdVerified: true, trustScore: 95 } : null));
+      toast({ title: "ID Verified!", description: "Your student badge and trust score have been updated." });
+    } catch (error: any) {
+      toast({ title: "Verification Failed", description: error.message, variant: "destructive" });
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, verifyStudentId }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, verifyStudentId, refetchUser }}>
       {children}
     </AuthContext.Provider>
   );

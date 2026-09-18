@@ -12,6 +12,7 @@ export function useCreateOrder() {
       const res = await fetch(api.orders.create.path, {
         method: api.orders.create.method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(validated),
       });
 
@@ -46,6 +47,7 @@ export function useVerifyPayment() {
       const res = await fetch(api.orders.verifyPayment.path, {
         method: api.orders.verifyPayment.method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       });
 

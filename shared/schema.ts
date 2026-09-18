@@ -4,10 +4,10 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  clerkId: text("clerk_id").notNull().unique(), // kept for compatibility if needed
+  clerkId: text("clerk_id").notNull().unique(), // kept for backward compatibility
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  password: text("password").notNull(),
+  passwordHash: text("password_hash").notNull(),
   studentId: text("student_id"),
   studentIdVerified: boolean("student_id_verified").default(false),
   trustScore: integer("trust_score").default(50),
@@ -59,6 +59,19 @@ export const orders = pgTable("orders", {
   index("orders_seller_id_idx").on(table.sellerId),
 ]);
 
+// Auth Schemas
+export const registerUserSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().email("Invalid email address").max(150),
+  password: z.string().min(6, "Password must be at least 6 characters").max(100),
+  studentIdImage: z.string().optional(),
+});
+
+export const loginUserSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
 export const insertUserSchema = createInsertSchema(users)
   .omit({
     id: true,
@@ -72,23 +85,39 @@ export const insertUserSchema = createInsertSchema(users)
     studentIdImage: z.string().optional(),
   });
 
-export const insertListingSchema = createInsertSchema(listings).omit({
-  id: true,
-  status: true,
-  createdAt: true,
-});
+export const insertListingSchema = createInsertSchema(listings)
+  .omit({
+    id: true,
+    status: true,
+    createdAt: true,
+  })
+  .extend({
+    sellerId: z.number().optional(), // Optional in client payload, overridden by server session
+  });
 
-export const insertOrderSchema = createInsertSchema(orders).omit({
-  id: true,
-  status: true,
-  razorpayOrderId: true,
-  razorpayPaymentId: true,
-  commissionAmount: true,
-  createdAt: true,
-});
+export const insertOrderSchema = createInsertSchema(orders)
+  .omit({
+    id: true,
+    status: true,
+    razorpayOrderId: true,
+    razorpayPaymentId: true,
+    commissionAmount: true,
+    createdAt: true,
+  })
+  .extend({
+    buyerId: z.number().optional(), // Overridden by server session
+    sellerId: z.number().optional(), // Derived from listing
+    amount: z.number().optional(), // Derived from listing
+  });
 
 export type User = typeof users.$inferSelect;
+export type PublicUser = Omit<User, "passwordHash">;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export function toPublicUser(user: User): PublicUser {
+  const { passwordHash: _hash, ...publicData } = user;
+  return publicData;
+}
 
 export type Listing = typeof listings.$inferSelect;
 export type InsertListing = z.infer<typeof insertListingSchema>;

@@ -7,7 +7,9 @@ export function useListings() {
   return useQuery<Listing[]>({
     queryKey: [api.listings.list.path],
     queryFn: async () => {
-      const res = await fetch(api.listings.list.path);
+      const res = await fetch(api.listings.list.path, {
+        credentials: "include",
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ message: "Failed to fetch listings" }));
         throw new Error(err.message || "Failed to fetch listings");
@@ -27,6 +29,7 @@ export function useCreateListing() {
       const res = await fetch(api.listings.create.path, {
         method: api.listings.create.method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(validated),
       });
 
@@ -60,6 +63,7 @@ export function useAnalyzePrice() {
       const res = await fetch(api.listings.analyzePrice.path, {
         method: api.listings.analyzePrice.method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       });
 
@@ -79,6 +83,7 @@ export function useCheckScam() {
       const res = await fetch(api.listings.checkScam.path, {
         method: api.listings.checkScam.method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       });
 
