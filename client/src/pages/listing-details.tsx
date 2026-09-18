@@ -89,7 +89,9 @@ export default function ListingDetails() {
                     <div className="flex items-center gap-2">
                       <p className="font-bold">{seller?.name || "Seller"}</p>
                       {seller?.studentIdVerified && (
-                        <ShieldCheck className="w-4 h-4 text-primary" title="Verified Student" />
+                        <span title="Verified Student" className="inline-flex items-center">
+                          <ShieldCheck className="w-4 h-4 text-primary" />
+                        </span>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">Trust Score: {seller?.trustScore || 50}/100</p>

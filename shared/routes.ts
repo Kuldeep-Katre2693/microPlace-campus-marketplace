@@ -130,6 +130,15 @@ export const api = {
         404: errorSchemas.notFound,
       }
     }
+  },
+  health: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/health' as const,
+      responses: {
+        200: z.object({ status: z.literal('ok') }),
+      }
+    }
   }
 };
 

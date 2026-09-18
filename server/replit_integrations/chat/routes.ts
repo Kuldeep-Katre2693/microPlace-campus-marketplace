@@ -15,23 +15,26 @@ export function registerChatRoutes(app: Express): void {
       res.json(conversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
-      res.status(500).json({ error: "Failed to fetch conversations" });
+      res.status(500).json({ message: "Failed to fetch conversations" });
     }
   });
 
   // Get single conversation with messages
   app.get("/api/conversations/:id", async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(String(req.params.id), 10);
+      if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
       const conversation = await chatStorage.getConversation(id);
       if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found" });
+        return res.status(404).json({ message: "Conversation not found" });
       }
       const messages = await chatStorage.getMessagesByConversation(id);
       res.json({ ...conversation, messages });
     } catch (error) {
       console.error("Error fetching conversation:", error);
-      res.status(500).json({ error: "Failed to fetch conversation" });
+      res.status(500).json({ message: "Failed to fetch conversation" });
     }
   });
 
@@ -43,26 +46,32 @@ export function registerChatRoutes(app: Express): void {
       res.status(201).json(conversation);
     } catch (error) {
       console.error("Error creating conversation:", error);
-      res.status(500).json({ error: "Failed to create conversation" });
+      res.status(500).json({ message: "Failed to create conversation" });
     }
   });
 
   // Delete conversation
   app.delete("/api/conversations/:id", async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(String(req.params.id), 10);
+      if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
       await chatStorage.deleteConversation(id);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting conversation:", error);
-      res.status(500).json({ error: "Failed to delete conversation" });
+      res.status(500).json({ message: "Failed to delete conversation" });
     }
   });
 
   // Send message and get AI response (streaming)
   app.post("/api/conversations/:id/messages", async (req: Request, res: Response) => {
     try {
-      const conversationId = parseInt(req.params.id);
+      const conversationId = parseInt(String(req.params.id), 10);
+      if (isNaN(conversationId) || conversationId <= 0) {
+        return res.status(400).json({ message: "Invalid conversation ID" });
+      }
       const { content } = req.body;
 
       // Save user message
@@ -107,12 +116,11 @@ export function registerChatRoutes(app: Express): void {
       console.error("Error sending message:", error);
       // Check if headers already sent (SSE streaming started)
       if (res.headersSent) {
-        res.write(`data: ${JSON.stringify({ error: "Failed to send message" })}\n\n`);
+        res.write(`data: ${JSON.stringify({ message: "Failed to send message" })}\n\n`);
         res.end();
       } else {
-        res.status(500).json({ error: "Failed to send message" });
+        res.status(500).json({ message: "Failed to send message" });
       }
     }
   });
 }
-

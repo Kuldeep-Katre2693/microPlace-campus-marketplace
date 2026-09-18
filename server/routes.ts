@@ -1,19 +1,23 @@
-import Razorpay from "razorpay";
-
-
-
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { chat } from "./replit_integrations/chat";
+import { registerChatRoutes } from "./replit_integrations/chat/routes";
+import { registerImageRoutes } from "./replit_integrations/image/routes";
+import { registerAudioRoutes } from "./replit_integrations/audio/routes";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  
+  // Health check endpoint
+  app.get("/api/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+
+  // Authentication routes
   app.post(api.auth.login.path, async (req, res) => {
     try {
       const input = api.auth.login.input.parse(req.body);
@@ -23,6 +27,9 @@ export async function registerRoutes(
       }
       res.status(200).json(user);
     } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0]?.message || "Invalid input" });
+      }
       res.status(400).json({ message: "Invalid input" });
     }
   });
@@ -38,7 +45,7 @@ export async function registerRoutes(
       res.status(201).json(user);
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message });
+        return res.status(400).json({ message: err.errors[0]?.message || "Invalid input" });
       }
       res.status(400).json({ message: "Invalid input" });
     }
@@ -47,25 +54,37 @@ export async function registerRoutes(
   app.post(api.auth.verifyId.path, async (req, res) => {
     try {
       const input = api.auth.verifyId.input.parse(req.body);
-      // For demo, we just update the user's verification status
-      const updated = await storage.updateUser(input.userId, { 
-        studentIdVerified: true, 
-        trustScore: 95 
+      const user = await storage.getUser(input.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      await storage.updateUser(input.userId, {
+        studentIdVerified: true,
+        trustScore: 95,
       });
-      res.status(200).json({ 
-        success: true, 
-        studentId: "DEMO-" + Math.floor(Math.random() * 100000), 
-        message: "ID verified successfully" 
+      res.status(200).json({
+        success: true,
+        studentId: "DEMO-" + Math.floor(Math.random() * 100000),
+        message: "ID verified successfully",
       });
     } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0]?.message || "Invalid input" });
+      }
       console.error("Verification error:", err);
       res.status(400).json({ message: "Invalid input" });
     }
   });
 
-  app.get(api.listings.list.path, async (req, res) => {
-    const listings = await storage.getListings();
-    res.status(200).json(listings);
+  // Listings routes
+  app.get(api.listings.list.path, async (_req, res) => {
+    try {
+      const listings = await storage.getListings();
+      res.status(200).json(listings);
+    } catch (err) {
+      console.error("Error fetching listings:", err);
+      res.status(500).json({ message: "Failed to fetch listings" });
+    }
   });
 
   app.post(api.listings.create.path, async (req, res) => {
@@ -75,16 +94,31 @@ export async function registerRoutes(
       res.status(201).json(listing);
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message });
+        return res.status(400).json({ message: err.errors[0]?.message || "Invalid input" });
       }
       res.status(400).json({ message: "Invalid input" });
     }
   });
 
+  app.get("/api/listings/:id", async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid listing ID" });
+    }
+    try {
+      const listing = await storage.getListing(id);
+      if (!listing) return res.status(404).json({ message: "Listing not found" });
+      res.status(200).json(listing);
+    } catch (err) {
+      console.error("Error fetching listing:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post(api.listings.analyzePrice.path, async (req, res) => {
     try {
-      const { title, category, condition, image } = req.body;
-      
+      const { title, category, condition } = req.body;
+
       const prompt = `You are a pricing assistant for a campus marketplace.
 Given this item title: "${title || 'Unknown'}" and condition: "${condition || 'Unknown'}",
 return JSON:
@@ -106,29 +140,26 @@ return JSON:
           response_format: { type: "json_object" }
         });
 
-        const content = response.choices[0].message.content;
+        const content = response.choices[0]?.message?.content;
         if (content) {
           const aiData = JSON.parse(content);
           return res.status(200).json({
             ...aiData,
             demand_level: "Medium",
-            confidence_score: 80
+            confidence_score: "80%"
           });
         }
       } catch (openaiErr) {
         console.error("OpenAI Error:", openaiErr);
       }
 
-      // Fallback
+      // Fallback response
       res.status(200).json({
-        title: title || "New Listing",
-        description: "A great item for sale.",
-        category: "General",
-        fair_price: req.body.price || "1000",
-        quick_sell_price: (Number(req.body.price || 1000) * 0.8).toString(),
+        fair_price: req.body.price ? `₹${req.body.price}` : "₹500",
+        quick_sell_price: req.body.price ? `₹${Math.round(Number(req.body.price) * 0.8)}` : "₹400",
+        premium_price: req.body.price ? `₹${Math.round(Number(req.body.price) * 1.2)}` : "₹650",
         demand_level: "Medium",
-        confidence_score: 50,
-        fallback: true
+        confidence_score: "50%"
       });
     } catch (err) {
       res.status(400).json({ message: "Invalid input" });
@@ -138,11 +169,10 @@ return JSON:
   app.post("/api/search/intent", async (req, res) => {
     try {
       const { query } = req.body;
-      // Mocking intent classification
       const intentResponse = {
         intent: "buying",
         categories: ["Electronics", "Academic"],
-        keywords: query.split(" ")
+        keywords: typeof query === "string" ? query.split(" ") : []
       };
       res.status(200).json(intentResponse);
     } catch (err) {
@@ -150,7 +180,7 @@ return JSON:
     }
   });
 
-  app.post(api.listings.checkScam.path, async (req, res) => {
+  app.post(api.listings.checkScam.path, async (_req, res) => {
     try {
       res.status(200).json({
         risk_level: "Low",
@@ -162,6 +192,7 @@ return JSON:
     }
   });
 
+  // Orders routes
   app.post(api.orders.create.path, async (req, res) => {
     try {
       const input = api.orders.create.input.parse(req.body);
@@ -169,7 +200,7 @@ return JSON:
       res.status(201).json(order);
     } catch (err) {
       if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message });
+        return res.status(400).json({ message: err.errors[0]?.message || "Invalid input" });
       }
       res.status(400).json({ message: "Invalid input" });
     }
@@ -178,178 +209,39 @@ return JSON:
   app.post(api.orders.verifyPayment.path, async (req, res) => {
     try {
       const input = api.orders.verifyPayment.input.parse(req.body);
-      await storage.updateOrder(input.orderId, { status: "paid", razorpayPaymentId: input.razorpayPaymentId });
+      await storage.updateOrder(input.orderId, {
+        status: "paid",
+        razorpayPaymentId: input.razorpayPaymentId,
+      });
       res.status(200).json({ success: true });
     } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0]?.message || "Invalid input" });
+      }
       res.status(400).json({ message: "Invalid input" });
     }
   });
 
+  // Users routes
   app.get(api.users.get.path, async (req, res) => {
-    const user = await storage.getUser(Number(req.params.id));
-    if (!user) return res.status(404).json({ message: "Not found" });
-    res.status(200).json(user);
-  });
-
-  app.get("/api/listings/:id", async (req, res) => {
-    const listing = await storage.getListing(Number(req.params.id));
-    if (!listing) return res.status(404).json({ message: "Listing not found" });
-    res.status(200).json(listing);
-  });
-
-  // Seed data
-  setTimeout(async () => {
-    try {
-      // Default Demo User
-      const demoEmail = "demo@example.com";
-      const existingDemoUser = await storage.getUserByEmail(demoEmail);
-      if (!existingDemoUser) {
-        // Simple password hashing simulation for demo purposes
-        // In a real app, use bcrypt.hash
-        await storage.createUser({
-          name: "Demo User",
-          email: demoEmail,
-          password: "password123", 
-          clerkId: "demo_default_user",
-          studentIdVerified: true,
-          trustScore: 85,
-          totalTransactions: 5,
-        } as any);
-        console.log("Demo user created: demo@example.com / password123");
-      }
-
-      const existingUser1 = await storage.getUserByEmail("bokdesaurabh802@gmail.com");
-      if (!existingUser1) {
-        await storage.createUser({
-          name: "Himanshu Bokde",
-          email: "bokdesaurabh802@gmail.com",
-          password: "password123456",
-          clerkId: "demo_user_1",
-          studentIdVerified: true,
-          trustScore: 95,
-        });
-      }
-
-      const existingUser2 = await storage.getUserByEmail("divyanimore1234@gmail.com");
-      if (!existingUser2) {
-        await storage.createUser({
-          name: "Divyani More",
-          email: "divyanimore1234@gmail.com",
-          password: "password112233",
-          clerkId: "demo_user_2",
-          studentIdVerified: true,
-          trustScore: 98,
-        });
-      }
-
-      const listings = await storage.getListings();
-      if (listings.length < 10) {
-        const user1 = await storage.getUserByEmail("bokdesaurabh802@gmail.com");
-        const user2 = await storage.getUserByEmail("divyanimore1234@gmail.com");
-
-        if (user1 && user2) {
-          const demoItems = [
-            {
-              sellerId: user1.id,
-              title: "MacBook Pro M2",
-              description: "Space gray, 16GB RAM, 512GB SSD. Excellent condition.",
-              price: 85000,
-              category: "Electronics",
-              condition: "Like New",
-              images: ["https://picsum.photos/seed/macbook/400/300"]
-            },
-            {
-              sellerId: user2.id,
-              title: "iPhone 14 Pro",
-              description: "Deep Purple, 128GB. Always used with case and screen protector.",
-              price: 65000,
-              category: "Electronics",
-              condition: "Good",
-              images: ["https://picsum.photos/seed/iphone/400/300"]
-            },
-            {
-              sellerId: user1.id,
-              title: "Study Table - Wooden",
-              description: "Spacious wooden study table with 3 drawers. Perfect for students.",
-              price: 3500,
-              category: "Furniture",
-              condition: "Good",
-              images: ["https://picsum.photos/seed/table/400/300"]
-            },
-            {
-              sellerId: user2.id,
-              title: "Ergonomic Office Chair",
-              description: "Adjustable height and lumbar support. Very comfortable for long study hours.",
-              price: 2800,
-              category: "Furniture",
-              condition: "Like New",
-              images: ["https://picsum.photos/seed/chair/400/300"]
-            },
-            {
-              sellerId: user1.id,
-              title: "Concepts of Physics - HC Verma",
-              description: "Both volumes (1 & 2). Essential for engineering entrance and foundation.",
-              price: 600,
-              category: "Books",
-              condition: "Used",
-              images: ["https://picsum.photos/seed/books/400/300"]
-            },
-            {
-              sellerId: user2.id,
-              title: "Engineering Mechanics - S.S. Bhavikatti",
-              description: "Standard textbook for first year engineering. No markings.",
-              price: 400,
-              category: "Books",
-              condition: "Like New",
-              images: ["https://picsum.photos/seed/textbook/400/300"]
-            },
-            {
-              sellerId: user1.id,
-              title: "Gear Cycle - Firefox",
-              description: "21-speed Shimano gears. Front suspension. Great for campus commuting.",
-              price: 12000,
-              category: "Bicycles",
-              condition: "Used",
-              images: ["https://picsum.photos/seed/cycle/400/300"]
-            },
-            {
-              sellerId: user2.id,
-              title: "City Hybrid Bicycle",
-              description: "Lightweight frame, smooth tires. Includes mudguards and a bell.",
-              price: 8000,
-              category: "Bicycles",
-              condition: "Good",
-              images: ["https://picsum.photos/seed/bike2/400/300"]
-            },
-            {
-              sellerId: user1.id,
-              title: "Rechargeable LED Desk Lamp",
-              description: "3 brightness levels, touch control. Built-in battery for power cuts.",
-              price: 750,
-              category: "Hostel Essentials",
-              condition: "Like New",
-              images: ["https://picsum.photos/seed/lamp/400/300"]
-            },
-            {
-              sellerId: user2.id,
-              title: "Laundry Basket & Drying Rack",
-              description: "Foldable laundry basket and a compact cloth drying rack.",
-              price: 900,
-              category: "Hostel Essentials",
-              condition: "Good",
-              images: ["https://picsum.photos/seed/laundry/400/300"]
-            }
-          ];
-
-          for (const item of demoItems) {
-            await storage.createListing(item);
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Failed to seed:", e);
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid user ID" });
     }
-  }, 2000);
+    try {
+      const user = await storage.getUser(id);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      res.status(200).json(user);
+    } catch (err) {
+      console.error("Error fetching user:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Register replit integrations
+  registerChatRoutes(app);
+  registerImageRoutes(app);
+  registerAudioRoutes(app);
 
   return httpServer;
 }

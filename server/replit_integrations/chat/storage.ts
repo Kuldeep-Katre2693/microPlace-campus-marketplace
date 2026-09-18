@@ -22,7 +22,7 @@ class DatabaseChatStorage implements IChatStorage {
   }
 
   async createConversation(title: string) {
-    const [conversation] = await db.insert(conversations).values({ title }).returning();
+    const [conversation] = await db.insert(conversations).values({ title, userId: 1 }).returning();
     return conversation;
   }
 
@@ -98,8 +98,12 @@ class MemChatStorage implements IChatStorage {
   }
 }
 
-export const chatStorage: IChatStorage = process.env.DATABASE_URL
-  ? new DatabaseChatStorage()
-  : new MemChatStorage();
-
-
+export const chatStorage: IChatStorage = (() => {
+  if (process.env.DATABASE_URL) {
+    return new DatabaseChatStorage();
+  }
+  if (process.env.NODE_ENV === "test" || process.env.USE_MOCK_STORAGE === "true") {
+    return new MemChatStorage();
+  }
+  throw new Error("DATABASE_URL is required to initialize DatabaseChatStorage.");
+})();

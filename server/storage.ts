@@ -32,20 +32,22 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
   
-  async createUser(insertUser: any): Promise<User> {
+  async createUser(insertUser: InsertUser): Promise<User> {
     const { studentIdImage, ...userData } = insertUser;
     const [user] = await db.insert(users).values({
       ...userData,
       clerkId: userData.clerkId || `local_${Date.now()}`,
       studentIdVerified: userData.studentIdVerified ?? false,
-      trustScore: userData.trustScore ?? 50,
-      totalTransactions: userData.totalTransactions ?? 0,
+      trustScore: 50,
+      totalTransactions: 0,
+      rating: '0',
     }).returning();
     return user;
   }
   
   async updateUser(id: number, updates: Partial<User>): Promise<User> {
     const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    if (!user) throw new Error(`User with ID ${id} not found`);
     return user;
   }
 
@@ -59,13 +61,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createListing(insertListing: InsertListing): Promise<Listing> {
-    const [listing] = await db.insert(listings).values(insertListing).returning();
+    const [listing] = await db.insert(listings).values({
+      ...insertListing,
+      status: "active",
+    }).returning();
     return listing;
   }
 
   async createOrder(insertOrder: InsertOrder): Promise<Order> {
     const [order] = await db.insert(orders).values({
       ...insertOrder,
+      status: "created",
       commissionAmount: Math.floor(insertOrder.amount * 0.05)
     }).returning();
     return order;
@@ -73,6 +79,7 @@ export class DatabaseStorage implements IStorage {
   
   async updateOrder(id: number, updates: Partial<Order>): Promise<Order> {
     const [order] = await db.update(orders).set(updates).where(eq(orders.id, id)).returning();
+    if (!order) throw new Error(`Order with ID ${id} not found`);
     return order;
   }
 }
@@ -94,7 +101,7 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find((u) => u.email.toLowerCase() === normalized);
   }
 
-  async createUser(insertUser: any): Promise<User> {
+  async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
     const { studentIdImage, ...userData } = insertUser;
     const user: User = {
@@ -105,9 +112,9 @@ export class MemStorage implements IStorage {
       password: userData.password,
       studentId: userData.studentId || null,
       studentIdVerified: userData.studentIdVerified ?? false,
-      trustScore: userData.trustScore ?? 50,
-      totalTransactions: userData.totalTransactions ?? 0,
-      rating: (userData.rating ?? "0").toString(),
+      trustScore: 50,
+      totalTransactions: 0,
+      rating: "0",
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -141,7 +148,7 @@ export class MemStorage implements IStorage {
       category: insertListing.category,
       condition: insertListing.condition,
       images: insertListing.images || [],
-      status: insertListing.status || "active",
+      status: "active",
       fairPrice: insertListing.fairPrice ?? null,
       quickSellPrice: insertListing.quickSellPrice ?? null,
       premiumPrice: insertListing.premiumPrice ?? null,
@@ -181,7 +188,13 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage: IStorage = process.env.DATABASE_URL
-  ? new DatabaseStorage()
-  : new MemStorage();
-
+export const storage: IStorage = (() => {
+  if (process.env.DATABASE_URL) {
+    return new DatabaseStorage();
+  }
+  if (process.env.NODE_ENV === "test" || process.env.USE_MOCK_STORAGE === "true") {
+    console.warn("[STORAGE] Using in-memory test storage (USE_MOCK_STORAGE=true).");
+    return new MemStorage();
+  }
+  throw new Error("DATABASE_URL is required to initialize DatabaseStorage.");
+})();
